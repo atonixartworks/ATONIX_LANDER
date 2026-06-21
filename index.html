@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATONIX — The Exclusive Social Network For Creative Minds</title>
+
+  <!-- SEO Meta -->
+  <meta name="description" content="Connect, showcase, learn, host, discover and grow with artists, professionals and creative enthusiasts around you on ATONIX. Do you believe creativity deserves its own world?">
+  <meta name="keywords" content="creative network, artists, professionals, design, music, culinary arts, martial arts, workshops, local events, creative community">
+  <meta name="theme-color" content="#05020c">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="ATONIX — The Exclusive Social Network For Creative Minds">
+  <meta property="og:description" content="Do you believe creativity deserves its own world? Join ATONIX.">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts: Cormorant Garamond (editorial display) + DM Sans (refined body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandBg:     '#05020c',
+            brandText:   '#f3f1f6',
+            brandMuted:  '#9d96ae',
+            brandPurple: '#8A2BE2',
+            brandPink:   '#FF1493',
+            brandCyan:   '#00E5FF',
+            brandOrange: '#FF7B00',
+          },
+          fontFamily: {
+            heading: ['Outfit', 'sans-serif'],
+            body:    ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons (replaces Font Awesome) -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="Logos/atonix logo final i.png">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css?v=2.0">
+</head>
+<body class="bg-brandBg text-brandText font-body overflow-x-hidden antialiased">
+
+  <!-- Futuristic HUD Page Loader -->
+  <div id="page-loader" class="page-loader">
+    <div class="hud-loader">
+      <!-- Crosshairs extending across the entire loader -->
+      <div class="hud-crosshair-h"></div>
+      <div class="hud-crosshair-v"></div>
+
+      <!-- Concentric futuristic circles -->
+      <div class="hud-circle-outer"></div>
+      <div class="hud-circle-middle"></div>
+      
+      <!-- Progress SVG Ring -->
+      <div class="hud-ring-wrap">
+        <svg class="hud-ring-svg" viewBox="0 0 100 100">
+          <circle class="hud-ring-track" cx="50" cy="50" r="45"></circle>
+          <circle id="loader-ring-progress" class="hud-ring-progress" cx="50" cy="50" r="45"></circle>
+        </svg>
+      </div>
+
+      <!-- Center text container -->
+      <div class="hud-center">
+        <div id="loader-text" class="hud-percent">0%</div>
+      </div>
+
+      <!-- HUD Coordinate markers -->
+      <div class="hud-marker hud-marker-top" id="loader-coord-x">COORD X : 124</div>
+      <div class="hud-marker hud-marker-bottom" id="loader-coord-y">COORD Y : 846</div>
+      <div class="hud-marker hud-marker-left" id="loader-coord-z">COORD Z : 0.003</div>
+      <div class="hud-marker hud-marker-right" id="loader-coord-w">COORD W : 769.3</div>
+      
+      <!-- Cyan status text below the loader assembly -->
+      <div class="hud-status" id="loader-status">GENERATING TERRAIN...</div>
+    </div>
+  </div>
+
+  <!-- Accessibility skip link -->
+  <a class="skip-link" href="#hero">Skip to main content</a>
+
+  <!-- Background Canvas -->
+  <div class="canvas-container">
+    <canvas id="animation-canvas"></canvas>
+    <div class="canvas-overlay"></div>
+  </div>
+
+  <!-- Mobile Nav Overlay (backdrop) -->
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay" aria-hidden="true"></div>
+
+  <!-- Scroll Down Hint -->
+  <div class="scroll-down-hint fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[999] pointer-events-none" id="hero-scroll-hint">
+    <span class="text-[9px] tracking-[0.25em] font-extrabold text-white/60 uppercase">Scroll to Explore</span>
+    <div class="scroll-mouse-icon w-6 h-9 border border-white/40 rounded-full flex justify-center py-2 relative">
+      <div class="scroll-mouse-dot w-1 h-2 bg-brandPurple rounded-full"></div>
+    </div>
+  </div>
+
+  <!-- Mobile Nav Drawer -->
+  <nav class="mobile-nav-drawer" id="mobile-nav-drawer" aria-label="Mobile navigation">
+    <button class="mobile-nav-close" id="mobile-nav-close" aria-label="Close navigation">
+      <i class="ph ph-x"></i>
+    </button>
+    <a href="#about"      class="mobile-nav-link"><i class="ph ph-info ph-icon-md"></i> About</a>
+    <a href="#audiences"  class="mobile-nav-link"><i class="ph ph-users ph-icon-md"></i> Who Can Join</a>
+    <a href="#features"   class="mobile-nav-link"><i class="ph ph-sparkle ph-icon-md"></i> Features</a>
+    <a href="#categories" class="mobile-nav-link"><i class="ph ph-circles-four ph-icon-md"></i> Categories</a>
+    <a href="#register"   class="mobile-nav-link"><i class="ph ph-key ph-icon-md"></i> Early Access</a>
+    <a href="#register"   class="btn btn-primary nav-drawer-cta mobile-nav-link" style="justify-content:center; text-decoration:none; border-radius:0;">
+      <span>PRE-REGISTER <i class="ph ph-arrow-right"></i></span>
+    </a>
+  </nav>
+
+  <!-- Header Navigation -->
+  <header id="site-header">
+    <div class="nav-container">
+      <!-- Left side: Logo -->
+      <a href="#" class="logo-wrapper" aria-label="ATONIX home">
+        <img src="Logos/atonix logo final i.png" alt="ATONIX Icon" class="h-10 w-auto">
+        <img src="Logos/logo word.png" alt="ATONIX" class="h-6 w-auto logo-wordmark">
+      </a>
+
+      <!-- Center group (Nav Links) -->
+      <div class="nav-center-group">
+        <ul class="nav-links" role="list">
+          <li><a href="#about"      id="nav-about">About</a></li>
+          <li><a href="#audiences"  id="nav-audiences">Who Can Join</a></li>
+          <li><a href="#features"   id="nav-features">Features</a></li>
+          <li><a href="#categories" id="nav-categories">Categories</a></li>
+          <li><a href="#register"   id="nav-register">Early Access</a></li>
+        </ul>
+      </div>
+
+      <!-- Right group (Pre-Register + Enjoy Animation + Hamburger menu) -->
+      <div class="nav-right-group">
+        <button class="btn btn-primary hidden md:inline-flex" id="open-modal-btn" aria-label="Open pre-registration form" aria-haspopup="dialog" aria-controls="register-modal" style="padding: 0.5rem 1.5rem; min-height: 38px; font-size: 0.8rem; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);">
+          <span>PRE-REGISTER</span>
+        </button>
+
+        <button id="toggle-animation-btn" class="enjoy-animation-toggle" aria-label="Toggle animation-only mode">
+          <i class="ph ph-eye-closed"></i>
+        </button>
+
+        <button class="hamburger" id="hamburger-btn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav-drawer">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════ MAIN -->
+  <main class="relative z-10 w-full" id="hero">
+
+    <!-- ── Section 1: Hero ────────────────────────────────────────── -->
+    <section id="hero-section" class="scroll-track w-full h-[250vh] relative">
+      <div class="sticky-container sticky top-0 left-0 w-full h-screen flex items-center justify-center overflow-hidden">
+        <div class="section-glass hero-glass">
+        <div class="section-content hero-grid w-full grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center">
+
+          <!-- Left -->
+          <div class="hero-left">
+            <div class="badge-pill mb-6 reveal-content">
+              <span class="dot pulse" aria-hidden="true"></span>
+              <span>EARLY ACCESS OPEN</span>
+            </div>
+
+            <h1 class="reveal-headline text-5xl md:text-6xl font-heading font-extrabold tracking-tight leading-none">
+              The Exclusive<br><span class="gradient-text">Social Network</span><br>For Creative Minds
+            </h1>
+
+            <hr class="reveal-line border-t border-white/10 my-4">
+
+            <div class="reveal-content">
+              <p class="text-lg text-brandMuted mb-8 max-w-[560px]">
+                Connect, showcase, learn, host, discover and grow with artists, professionals and creative enthusiasts around you.
+              </p>
+
+              <div class="belief-quote my-6">
+                <p>Do you believe creativity deserves its own world?</p>
+              </div>
+
+              <div class="flex flex-wrap gap-4 mt-8">
+                <a href="#register" class="btn btn-primary">
+                  <span>I BELIEVE <i class="ph ph-arrow-right"></i></span>
+                </a>
+                <a href="#register" class="btn btn-secondary">
+                  <span>RESERVE MY SPOT</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Metrics -->
+          <div class="hero-right">
+            <div class="reveal-content">
+              <div class="metrics-container" role="list">
+                
+                <!-- Metric 1: Total Users Joining -->
+                <div class="metric-card-vertical wjc-card flex flex-col gap-3" id="metric-card-total" role="listitem">
+                  <!-- Top-right corner "● LIVE" badge -->
+                  <div class="absolute top-4 right-4 flex items-center gap-1.5 text-[9px] font-extrabold tracking-widest text-brandPink bg-brandPink/10 border border-brandPink/20 px-2 py-0.5 rounded">
+                    <span class="dot pulse-pink bg-brandPink w-1.5 h-1.5 rounded-full" aria-hidden="true"></span>
+                    <span>LIVE</span>
+                  </div>
+                  
+                  <div class="flex items-center gap-4">
+                    <div class="metric-icon-box w-12 h-12 rounded-xl border border-brandPurple/30 flex items-center justify-center text-brandPurple bg-brandPurple/10">
+                      <i class="ph ph-users ph-icon-lg" aria-hidden="true"></i>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                      <span class="text-3xl font-extrabold text-white leading-tight" id="live-total-users">0</span>
+                      <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-brandMuted">
+                        <span>Creative Minds Interested</span>
+                        <span class="flex items-center gap-1 text-[10px] text-green-400 font-bold whitespace-nowrap">
+                          <span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block animate-pulse"></span> Live Now
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Metric 2: First 500 Artists -->
+                <div class="metric-card-vertical wjc-card flex flex-col gap-4" id="metric-card-artists" role="listitem">
+                  <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center gap-4">
+                      <div class="metric-icon-box w-11 h-11 rounded-full border border-brandPurple/40 flex items-center justify-center text-brandPurple bg-brandPurple/10">
+                        <i class="ph ph-sketch-logo ph-icon-md" aria-hidden="true"></i>
+                      </div>
+                      <div class="text-sm font-semibold text-brandMuted">
+                        <span class="text-brandPurple font-extrabold text-base" id="live-artists-joined">0</span> <span class="text-white">/ 500 Artists Joined</span>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold text-brandPurple" id="live-artist-spots-left">500 spots left</span>
+                  </div>
+
+                  <!-- Progress Line -->
+                  <div class="progress-bar-wrapper w-full flex flex-col gap-1.5">
+                    <div class="progress-track-bg w-full h-1.5 bg-white/5 rounded-full relative">
+                      <div class="progress-fill-line h-full rounded-full" id="artist-progress-fill">
+                        <!-- Glowing End Knob -->
+                        <div class="progress-fill-glow-knob"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- Milestones Indicators -->
+                    <div class="milestones-row">
+                      <!-- Milestone 1: 500 -->
+                      <div class="milestone-marker" style="left: 33.3%;" id="art-ms-500">
+                        <span class="milestone-val">500</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                          <div class="milestone-dot"></div>
+                          <span class="milestone-label hidden sm:inline-block">Early Access</span>
+                        </div>
+                      </div>
+                      <!-- Milestone 2: 1K -->
+                      <div class="milestone-marker" style="left: 66.6%;" id="art-ms-1k">
+                        <span class="milestone-val">1K</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                          <div class="milestone-dot"></div>
+                          <span class="milestone-label hidden sm:inline-block">Community Milestone</span>
+                        </div>
+                      </div>
+                      <!-- Milestone 3: 10K -->
+                      <div class="milestone-marker align-right" style="left: 100%;" id="art-ms-10k">
+                        <span class="milestone-val">10K</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                          <div class="milestone-dot"></div>
+                          <span class="milestone-label hidden sm:inline-block">Next Frontier</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Metric 3: First 500 Enthusiasts -->
+                <div class="metric-card-vertical wjc-card flex flex-col gap-4" id="metric-card-enthusiasts" role="listitem">
+                  <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center gap-4">
+                      <div class="metric-icon-box w-11 h-11 rounded-full border border-brandPink/40 flex items-center justify-center text-brandPink bg-brandPink/10">
+                        <i class="ph ph-crown ph-icon-md" aria-hidden="true"></i>
+                      </div>
+                      <div class="text-sm font-semibold text-brandMuted">
+                        <span class="text-brandPink font-extrabold text-base" id="live-enth-joined">0</span> <span class="text-white">/ 500 Enthusiasts Joined</span>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold text-brandPink" id="live-enth-spots-left">500 spots left</span>
+                  </div>
+
+                  <!-- Progress Line -->
+                  <div class="progress-bar-wrapper w-full flex flex-col gap-1.5">
+                    <div class="progress-track-bg w-full h-1.5 bg-white/5 rounded-full relative">
+                      <div class="progress-fill-line h-full rounded-full" id="enth-progress-fill">
+                        <!-- Glowing End Knob -->
+                        <div class="progress-fill-glow-knob"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- Milestones Indicators -->
+                    <div class="milestones-row">
+                      <!-- Milestone 1: 500 -->
+                      <div class="milestone-marker" style="left: 33.3%;" id="enth-ms-500">
+                        <span class="milestone-val">500</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                          <div class="milestone-dot"></div>
+                          <span class="milestone-label hidden sm:inline-block">Early Access</span>
+                        </div>
+                      </div>
+                      <!-- Milestone 2: 1K -->
+                      <div class="milestone-marker" style="left: 66.6%;" id="enth-ms-1k">
+                        <span class="milestone-val">1K</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                          <div class="milestone-dot"></div>
+                          <span class="milestone-label hidden sm:inline-block">Community Milestone</span>
+                        </div>
+                      </div>
+                      <!-- Milestone 3: 10K -->
+                      <div class="milestone-marker align-right" style="left: 100%;" id="enth-ms-10k">
+                        <span class="milestone-val">10K</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                          <div class="milestone-dot"></div>
+                          <span class="milestone-label hidden sm:inline-block">Next Frontier</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Metric 4: Creative Worlds Line -->
+                <div class="metric-card-vertical wjc-card flex items-center gap-4" id="metric-card-worlds" role="listitem">
+                  <div class="metric-icon-box w-11 h-11 rounded-full border border-brandCyan/40 flex items-center justify-center text-brandCyan bg-brandCyan/10">
+                    <i class="ph ph-globe ph-icon-md" aria-hidden="true"></i>
+                  </div>
+                  <div class="text-sm font-semibold text-brandMuted">
+                    <span class="text-brandCyan font-extrabold text-base" id="live-worlds-count">0</span> <span class="text-white">Creative Worlds Coming Together</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div><!-- /section-glass -->
+      </div>
+    </section>
+
+    <!-- ── Section 2: About ───────────────────────────────────────── -->
+    <section id="about" class="scroll-track w-full h-[250vh] relative">
+      <div class="sticky-container sticky top-0 left-0 w-full h-screen flex items-center justify-center overflow-hidden">
+        <div class="section-glass">
+        <div class="section-content about-layout w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+
+          <div class="about-left">
+            <div class="badge-pill mb-6 reveal-content"><span>ABOUT ATONIX</span></div>
+
+            <h2 class="reveal-headline text-4xl md:text-5xl font-heading font-extrabold tracking-tight flex items-center flex-wrap gap-2">
+              What is <img src="Logos/logo word.png" alt="ATONIX" class="h-6 md:h-8 w-auto inline-block">?
+            </h2>
+
+            <hr class="reveal-line border-t border-white/10 my-4">
+
+            <div class="reveal-content">
+              <div class="belief-quote my-6">
+                <p>Do you believe talent should meet opportunity?</p>
+              </div>
+
+              <!-- Sliding Letters -->
+              <div class="slidable-letters flex gap-3 my-4" role="list" aria-label="ATONIX acronym">
+                <div class="letter-card" role="listitem" tabindex="0" data-term="Artist"    data-desc="A creator who expresses vision through diverse mediums.">A</div>
+                <div class="letter-card" role="listitem" tabindex="0" data-term="Talent"    data-desc="Innate skill waiting to be refined, showcased, and discovered.">T</div>
+                <div class="letter-card" role="listitem" tabindex="0" data-term="Opportunity" data-desc="The gateway to turn passion into careers and connections.">O</div>
+                <div class="letter-card active" role="listitem" tabindex="0" data-term="Nexus of" data-desc="The connection point where diverse creative worlds intersect.">N</div>
+                <div class="letter-card" role="listitem" tabindex="0" data-term="Infinite"  data-desc="Boundless creative potential without limits or borders.">I</div>
+                <div class="letter-card" role="listitem" tabindex="0" data-term="Xpression" data-desc="Authentic voice brought to life through creative acts.">X</div>
+              </div>
+
+              <div class="bg-brandPurple/6 border-l-2 border-brandPurple p-4 mb-4 rounded-r-lg" aria-live="polite">
+                <h4 id="letter-title" class="text-lg font-bold text-white mb-1">Nexus of</h4>
+                <p  id="letter-desc" class="text-sm text-brandMuted">The connection point where diverse creative worlds intersect.</p>
+              </div>
+
+              <p class="text-brandMuted mb-4 text-sm leading-relaxed">
+                ATONIX is a place to belong for people who think differently and believe what they create matters. A place where creativity is nurtured, potential is discovered, and opportunity helps turn passion into something meaningful.
+              </p>
+
+              <a href="#register" class="btn btn-primary">
+                <span>I BELIEVE</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="about-right">
+            <div class="reveal-content">
+              <div class="flex flex-col gap-6">
+                
+                <!-- Card 1: Who Are We -->
+                <div class="perks-horizontal-card wjc-card relative overflow-hidden bg-black border border-white/8 rounded-2xl p-6" id="about-card-who">
+                  <div class="flex items-start gap-5 relative z-10 text-left">
+                    <div class="perk-icon flex-shrink-0">
+                      <i class="ph ph-users-three" aria-hidden="true" style="color: #E6C280 !important; font-size: 1.75rem; filter: drop-shadow(0 0 4px rgba(230, 194, 128, 0.25));"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-bold uppercase tracking-wider mb-2" style="background: linear-gradient(135deg, #FFF0D0 0%, #E6C280 50%, #B38F4B 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #E6C280 !important; font-family: var(--font-accent);">Who Are We</h3>
+                      <p class="text-white text-sm font-bold leading-normal mb-1.5">ATONIX is a home for creative minds.</p>
+                      <p class="text-brandMuted text-xs leading-relaxed">For people who create, perform, learn, explore, and believe their talent deserves a place to belong.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 2: What We Do -->
+                <div class="perks-horizontal-card wjc-card relative overflow-hidden bg-black border border-white/8 rounded-2xl p-6" id="about-card-what">
+                  <div class="flex items-start gap-5 relative z-10 text-left">
+                    <div class="perk-icon flex-shrink-0">
+                      <i class="ph ph-compass" aria-hidden="true" style="color: #E6C280 !important; font-size: 1.75rem; filter: drop-shadow(0 0 4px rgba(230, 194, 128, 0.25));"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-bold uppercase tracking-wider mb-2" style="background: linear-gradient(135deg, #FFF0D0 0%, #E6C280 50%, #B38F4B 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #E6C280 !important; font-family: var(--font-accent);">What We Do</h3>
+                      <p class="text-white text-sm font-bold leading-normal mb-1.5">ATONIX helps you discover creativity around you.</p>
+                      <p class="text-brandMuted text-xs leading-relaxed">From local artists and workshops to events, communities, and people who share your creative world.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 3: Why Are We Here -->
+                <div class="perks-horizontal-card wjc-card relative overflow-hidden bg-black border border-white/8 rounded-2xl p-6" id="about-card-why">
+                  <div class="flex items-start gap-5 relative z-10 text-left">
+                    <div class="perk-icon flex-shrink-0">
+                      <i class="ph ph-heart" aria-hidden="true" style="color: #E6C280 !important; font-size: 1.75rem; filter: drop-shadow(0 0 4px rgba(230, 194, 128, 0.25));"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-bold uppercase tracking-wider mb-2" style="background: linear-gradient(135deg, #FFF0D0 0%, #E6C280 50%, #B38F4B 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #E6C280 !important; font-family: var(--font-accent);">Why Are We Here</h3>
+                      <p class="text-white text-sm font-bold leading-normal mb-1.5">ATONIX exists to keep creativity alive and connected.</p>
+                      <p class="text-brandMuted text-xs leading-relaxed">And to keep the human side of creativity alive, because art, talent, and expression deserve more than getting lost in endless scrolling.</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div><!-- /section-glass -->
+      </div>
+    </section>
+
+    <!-- ── Section 3: Audiences ──────────────────────────────────── -->
+    <section id="audiences" class="scroll-track w-full h-[250vh] relative">
+      <div class="sticky-container sticky top-0 left-0 w-full h-screen flex items-center justify-center overflow-hidden">
+        <div class="section-glass">
+        <div class="section-content w-full">
+
+          <div class="audience-toggle-container flex justify-center gap-4 mb-6 reveal-content">
+            <button class="toggle-btn active" data-target="audience-professionals" aria-pressed="true">
+              <i class="ph ph-briefcase" aria-hidden="true"></i> Creative Professionals
+            </button>
+            <button class="toggle-btn" data-target="audience-users" aria-pressed="false">
+              <i class="ph ph-users" aria-hidden="true"></i> Creative Enthusiasts
+            </button>
+          </div>
+
+          <!-- Professionals Tab -->
+          <div id="audience-professionals" class="audience-content active">
+            <div class="audience-grid grid grid-cols-1 lg:grid-cols-[1.22fr_0.78fr] gap-8 items-start mb-4">
+              <!-- Left Column: Info + Cards -->
+              <div class="audience-left flex flex-col gap-6">
+                <div class="audience-info">
+                  <div class="badge-pill mb-2 reveal-content"><span>PROFESSIONALS</span></div>
+                  <h2 class="reveal-headline text-3xl md:text-4xl font-heading font-extrabold tracking-tight">
+                    For The Ones Who <span class="text-brandPurple">Create For Work</span>
+                  </h2>
+                  <hr class="reveal-line border-t border-white/10 my-4">
+                  <div class="reveal-content">
+                    <p class="text-brandMuted text-sm mb-3">Build visibility, host experiences, find collaborators and turn your creative skill into opportunity.</p>
+                    <div class="belief-quote my-2">
+                      <p>Do you believe creativity belongs to both passion and profession?</p>
+                    </div>
+                    <a href="#register" class="btn btn-primary">
+                      <span>I BELIEVE <i class="ph ph-arrow-right" aria-hidden="true"></i></span>
+                    </a>
+                  </div>
+                </div>
+
+                <div class="reveal-content">
+              <div class="why-join-cards-grid" role="list">
+
+                <!-- Card 1: Creative Portfolio -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-image" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Creative Portfolio</strong>
+                    <span class="wjc-sub">Let your work speak before you do.</span>
+                    <p class="wjc-desc">Bring your creative identity into one place, so people remember what you make, what you stand for, and why your work matters.</p>
+                  </div>
+                </div>
+
+                <!-- Card 2: Host Paid Workshops -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-calendar" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Host Paid Workshops</strong>
+                    <span class="wjc-sub">Turn your skill into an experience.</span>
+                    <p class="wjc-desc">Share what you know with people who are ready to learn, and let your craft become something others can experience with you.</p>
+                  </div>
+                </div>
+
+                <!-- Card 3: Promote Your Events -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-megaphone" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Promote Your Events</strong>
+                    <span class="wjc-sub">Bring the right audience closer.</span>
+                    <p class="wjc-desc">Put your events in front of people who care. Reach local creatives who are already looking for exactly what you're offering.</p>
+                  </div>
+                </div>
+
+                <!-- Card 4: Get Discovered Locally -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-map-pin" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Get Discovered Locally</strong>
+                    <span class="wjc-sub">Be found in your own city.</span>
+                    <p class="wjc-desc">Your next client, collaborator, or opportunity might be around the corner. Let the right people in your area find you first.</p>
+                  </div>
+                </div>
+
+                <!-- Card 5: Find Creative Projects -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-briefcase" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Find Creative Projects</strong>
+                    <span class="wjc-sub">Discover work that fits your craft.</span>
+                    <p class="wjc-desc">Browse real briefs, gigs, and project opportunities matched to your creative skills locally and beyond.</p>
+                  </div>
+                </div>
+
+                <!-- Card 6: Build Your Audience -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-users-three" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Build Your Audience</strong>
+                    <span class="wjc-sub">Grow a tribe that follows your work.</span>
+                    <p class="wjc-desc">Build a dedicated circle of people who believe in what you create and keep them close with newsletters and updates.</p>
+                  </div>
+                </div>
+
+                <!-- Card 7: Connect With Collaborators -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-share-network" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Connect With Collaborators</strong>
+                    <span class="wjc-sub">Find your creative counterparts.</span>
+                    <p class="wjc-desc">Team up with actors, painters, directors, and makers who take their craft seriously people who match your creative energy.</p>
+                  </div>
+                </div>
+
+                <!-- Card 8: Advertise Classes -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem">
+                    <div class="wjc-icon-wrap"><i class="ph ph-monitor" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Advertise Classes</strong>
+                    <span class="wjc-sub">Fill your sessions with the right students.</span>
+                    <p class="wjc-desc">List your courses and creative classes where curious learners are already browsing and fill every seat with intention.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!-- End Left Column -->
+
+              <!-- Right Column: Showcase Card -->
+              <div class="audience-right flex justify-center lg:justify-end w-full">
+                <div class="reveal-content w-full max-w-[340px]">
+                  <div class="showcase-card overflow-hidden border border-brandPurple/30 bg-black rounded-2xl relative" style="height: 475px; width: 290px; margin: 0 auto;">
+                    <!-- Gradient Border Mask -->
+                    <div class="absolute inset-0 p-[1.5px] pointer-events-none" style="border-radius: 16px; background: linear-gradient(135deg, var(--purple), transparent, var(--cyan)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;"></div>
+                    
+                    <div class="w-full h-full flex items-center justify-center overflow-hidden relative">
+                      <img id="prof-showcase-img" src="Assets/Creative Professional Cards/CP1.png" alt="Creative Portfolio" class="max-w-full max-h-full object-contain rounded-2xl" loading="lazy">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div> <!-- End audience-grid -->
+          </div> <!-- End Professionals Tab -->
+
+          <!-- Enthusiasts Tab -->
+          <div id="audience-users" class="audience-content">
+            <div class="audience-grid grid grid-cols-1 lg:grid-cols-[1.22fr_0.78fr] gap-8 items-start mb-4">
+              <!-- Left Column: Info + Cards -->
+              <div class="audience-left flex flex-col gap-6">
+                <div class="audience-info">
+                  <div class="badge-pill mb-2 reveal-content"><span>ENTHUSIASTS</span></div>
+                  <h2 class="reveal-headline text-3xl md:text-4xl font-heading font-extrabold tracking-tight">
+                    And The Ones Who <span class="text-brandCyan">Create For Wonder</span>
+                  </h2>
+                  <hr class="reveal-line border-t border-white/10 my-4">
+                  <div class="reveal-content">
+                    <p class="text-brandMuted text-sm mb-3">Explore your interests, learn new skills, attend local experiences and meet people who love creativity like you do.</p>
+                    <div class="belief-quote my-2">
+                      <p>Do you believe creativity belongs to both passion and profession?</p>
+                    </div>
+                    <a href="#register" class="btn btn-primary">
+                      <span>I BELIEVE</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div class="reveal-content">
+              <div class="why-join-cards-grid" role="list">
+
+                <!-- Card 1: Join Communities -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="CREATIVE COMMUNITY"
+                       data-sub="Connect with local hobbyists, learn new skills, and attend local experiences."
+                       data-image="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80"
+                       data-title="Beginner Pottery Circle"
+                       data-dist="2.1 km away"
+                       data-host="Hosted by The Clay Room"
+                       data-count="12 Creative Minds Joined">
+                    <div class="wjc-icon-wrap"><i class="ph ph-users" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Join Communities</strong>
+                    <span class="wjc-sub">Find your people nearby.</span>
+                    <p class="wjc-desc">Step into local groups of hobbyists and enthusiasts who share your passion and make creativity something you do together.</p>
+                  </div>
+                </div>
+
+                <!-- Card 2: Discover Workshops -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="CREATIVE WORKSHOP"
+                       data-sub="Browse hands-on creative experiences happening around you."
+                       data-image="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80"
+                       data-title="Beginner Acrylic Painting"
+                       data-dist="1.8 km away"
+                       data-host="Hosted by Paint & Pour Studio"
+                       data-count="8 Minds Booked">
+                    <div class="wjc-icon-wrap"><i class="ph ph-magnifying-glass" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Discover Workshops</strong>
+                    <span class="wjc-sub">Try something new, close to home.</span>
+                    <p class="wjc-desc">Browse hands-on creative experiences happening around you. Pottery, photography, painting, music, and more waiting to be explored.</p>
+                  </div>
+                </div>
+
+                <!-- Card 3: Learn From Pros -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="CREATIVE CLASS"
+                       data-sub="Pick up skills from active creators."
+                       data-image="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80"
+                       data-title="Creative Writing Masterclass"
+                       data-dist="3.5 km away"
+                       data-host="Hosted by Author Collective"
+                       data-count="15 Minds Learning">
+                    <div class="wjc-icon-wrap"><i class="ph ph-graduation-cap" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Learn From Pros</strong>
+                    <span class="wjc-sub">Pick up skills from active creators.</span>
+                    <p class="wjc-desc">Learn directly from working artists and professionals who teach what they live not just what they've read.</p>
+                  </div>
+                </div>
+
+                <!-- Card 4: Attend Events -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="CREATIVE EVENT"
+                       data-sub="From theater showcases to live music."
+                       data-image="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&q=80"
+                       data-title="Indie Music Night"
+                       data-dist="2.4 km away"
+                       data-host="Hosted by The Sound Stage"
+                       data-count="45 Minds Attending">
+                    <div class="wjc-icon-wrap"><i class="ph ph-ticket" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Attend Events</strong>
+                    <span class="wjc-sub">Experience creativity live.</span>
+                    <p class="wjc-desc">From theater showcases to live music, art exhibitions to open mics. Find events that make creativity something you feel, not just see.</p>
+                  </div>
+                </div>
+
+                <!-- Card 5: Explore Art Forms -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="CREATIVE STUDY"
+                       data-sub="Wander into new creative worlds."
+                       data-image="https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600&q=80"
+                       data-title="Mural Painting Tour"
+                       data-dist="0.8 km away"
+                       data-host="Hosted by Urban Canvas"
+                       data-count="20 Minds Attending">
+                    <div class="wjc-icon-wrap"><i class="ph ph-palette" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Explore Art Forms</strong>
+                    <span class="wjc-sub">Wander into new creative worlds.</span>
+                    <p class="wjc-desc">Discover mural trails, street art, local galleries, and curated art tours in your city. A world of creative expression just outside your door.</p>
+                  </div>
+                </div>
+
+                <!-- Card 6: Meet Creators -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="CREATOR MEETUP"
+                       data-sub="Meet other photographers and designers at coffee hops."
+                       data-image="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&q=80"
+                       data-title="Creative Co-working Session"
+                       data-dist="2.5 km away"
+                       data-host="Hosted by Nexus Space"
+                       data-count="35 Minds Attending">
+                    <div class="wjc-icon-wrap"><i class="ph ph-user-circle" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Meet Creators</strong>
+                    <span class="wjc-sub">Connect with local creative minds.</span>
+                    <p class="wjc-desc">Meet photographers, designers, writers, and makers at creative co-working sessions and coffee hops near you. Real connections over shared passions.</p>
+                  </div>
+                </div>
+
+                <!-- Card 7: Start Your Journey -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="CREATIVE PATH"
+                       data-sub="Find classes to kickstart your creative side projects."
+                       data-image="https://images.unsplash.com/photo-1489533119213-66a5cd877091?w=600&q=80"
+                       data-title="Morning Meditation & Sketch"
+                       data-dist="0.5 km away"
+                       data-host="Hosted by Zen Art"
+                       data-count="15 Minds Joined">
+                    <div class="wjc-icon-wrap"><i class="ph ph-rocket" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Start Your Journey</strong>
+                    <span class="wjc-sub">Kickstart your creative side.</span>
+                    <p class="wjc-desc">You don't need to be a pro to begin. Find beginner-friendly classes, communities, and starting points that fit where you are right now.</p>
+                  </div>
+                </div>
+
+                <!-- Card 8: Share Thoughts -->
+                <div class="wjc-card-wrapper">
+                  <div class="wjc-card" role="listitem"
+                       data-badge="COMMUNITY THREAD"
+                       data-sub="Read and write stories about local design histories."
+                       data-image="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&q=80"
+                       data-title="Storytelling Workshop"
+                       data-dist="2.2 km away"
+                       data-host="Hosted by Word Collective"
+                       data-count="18 Minds Sharing">
+                    <div class="wjc-icon-wrap"><i class="ph ph-chat-dots" aria-hidden="true"></i></div>
+                    <strong class="wjc-title">Share Thoughts</strong>
+                    <span class="wjc-sub">Your voice belongs in the room.</span>
+                    <p class="wjc-desc">Write, discuss, and engage with stories, creative histories, and conversations that keep the culture of creativity alive and growing.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!-- End Left Column -->
+
+              <!-- Right Column: Showcase Card -->
+              <div class="audience-right flex justify-center lg:justify-end w-full">
+                <div class="reveal-content w-full max-w-[340px]">
+                  <div class="showcase-card overflow-hidden border border-brandPurple/30 bg-[#0e071c]/80 flex flex-col rounded-2xl relative" style="height: 475px; width: 290px; margin: 0 auto;">
+                    <!-- Gradient Border Mask -->
+                    <div class="absolute inset-0 p-[1.5px] pointer-events-none" style="border-radius: 16px; background: linear-gradient(135deg, var(--purple), transparent, var(--cyan)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;"></div>
+                    
+                    <div class="w-full h-[240px] overflow-hidden relative p-3 pb-0">
+                      <img id="enth-showcase-img" src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80" alt="Beginner Pottery Circle" class="w-full h-full object-cover rounded-xl" loading="lazy">
+                    </div>
+                    <div class="p-4 flex flex-col justify-between flex-grow relative min-h-[140px]">
+                      <div>
+                        <span id="enth-showcase-badge" class="inline-block text-[9px] font-extrabold tracking-wider text-brandCyan bg-brandCyan/10 border border-brandCyan/20 px-2 py-0.5 rounded uppercase mb-1.5 w-max">CREATIVE COMMUNITY</span>
+                        <h3 id="enth-showcase-title" class="text-base font-bold text-white mb-2 leading-tight">Beginner Pottery Circle</h3>
+                        <div class="flex flex-col gap-1 text-[11px] text-brandMuted">
+                          <span id="enth-showcase-dist" class="text-brandPink font-semibold"><i class="ph ph-map-pin mr-1.5 text-brandPink" aria-hidden="true" style="color:var(--pink) !important;"></i> 2.1 km away</span>
+                          <span id="enth-showcase-host"><i class="ph ph-user mr-1.5" aria-hidden="true"></i> Hosted by The Clay Room</span>
+                          <span id="enth-showcase-count"><i class="ph ph-users mr-1.5" aria-hidden="true"></i> 12 Creative Minds Joined</span>
+                        </div>
+                      </div>
+                      <div class="absolute bottom-4 right-4">
+                        <button class="w-8 h-8 rounded-full border border-brandPurple/60 flex items-center justify-center text-brandPurple hover:bg-brandPurple hover:text-white transition-all duration-300" id="enth-showcase-btn" aria-label="View Details">
+                          <i class="ph ph-arrow-right" aria-hidden="true" style="color: #ffffff !important;"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div> <!-- End audience-grid -->
+          </div> <!-- End Enthusiasts Tab -->
+
+        </div>
+        </div><!-- /section-glass -->
+      </div>
+    </section>
+
+    <!-- ── Section 4: Features ────────────────────────────────────── -->
+    <section id="features" class="scroll-track w-full h-[250vh] relative">
+      <div class="sticky-container sticky top-0 left-0 w-full h-screen flex items-center justify-center overflow-hidden">
+        <div class="section-glass">
+        <div class="section-content features-layout w-full flex flex-col justify-between h-full py-2">
+          
+          <div class="w-full grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 items-center">
+            <div class="features-left">
+              <div class="badge-pill mb-3 reveal-content"><span>FEATURES</span></div>
+              <h2 class="reveal-headline text-4xl md:text-5xl font-heading font-extrabold tracking-tight">
+                A Creative World <span class="text-brandPink">Built Around You</span>
+              </h2>
+              <hr class="reveal-line border-t border-white/10 my-4">
+              <div class="reveal-content">
+                <p class="text-brandMuted text-base mb-4">ATONIX is a multi-dimensional platform designed to unlock opportunities. Hover on any capability below to see a live example of how it works inside the network.</p>
+                <div class="belief-quote my-3">
+                  <p>Do you believe creativity should be easier to find?</p>
+                </div>
+                <ul class="features-list flex flex-col gap-3" role="list">
+                  <li class="feature-item active" data-index="1" role="listitem">
+                    <div class="feature-icon-box"><i class="ph ph-user" aria-hidden="true" style="color:#ffffff !important;"></i></div>
+                    <span class="num" aria-hidden="true">01</span>
+                    <div class="feature-text">
+                      <strong>Creative Portfolio</strong>
+                      <span>Create a portfolio that reflects your style, your work, and your creative journey. Showcase your creations with clarity and confidence.</span>
+                    </div>
+                    <i class="ph ph-arrow-right feature-arrow" aria-hidden="true" style="color:#ffffff !important;"></i>
+                  </li>
+                  <li class="feature-item" data-index="2" role="listitem">
+                    <div class="feature-icon-box"><i class="ph ph-map-pin" aria-hidden="true" style="color:#ffffff !important;"></i></div>
+                    <span class="num" aria-hidden="true">02</span>
+                    <div class="feature-text">
+                      <strong>Local Discovery</strong>
+                      <span>Find artists, workshops, events, classes and opportunities happening near you.</span>
+                    </div>
+                    <i class="ph ph-arrow-right feature-arrow" aria-hidden="true" style="color:#ffffff !important;"></i>
+                  </li>
+                  <li class="feature-item" data-index="3" role="listitem">
+                    <div class="feature-icon-box"><i class="ph ph-graduation-cap" aria-hidden="true" style="color:#ffffff !important;"></i></div>
+                    <span class="num" aria-hidden="true">03</span>
+                    <div class="feature-text">
+                      <strong>Workshops &amp; Classes</strong>
+                      <span>Learn from creative professionals or teach your own craft to people around you.</span>
+                    </div>
+                    <i class="ph ph-arrow-right feature-arrow" aria-hidden="true" style="color:#ffffff !important;"></i>
+                  </li>
+                  <li class="feature-item" data-index="4" role="listitem">
+                    <div class="feature-icon-box"><i class="ph ph-calendar-star" aria-hidden="true" style="color:#ffffff !important;"></i></div>
+                    <span class="num" aria-hidden="true">04</span>
+                    <div class="feature-text">
+                      <strong>Events &amp; Experiences</strong>
+                      <span>Host, discover and attend creative experiences across different art forms.</span>
+                    </div>
+                    <i class="ph ph-arrow-right feature-arrow" aria-hidden="true" style="color:#ffffff !important;"></i>
+                  </li>
+                  <li class="feature-item" data-index="5" role="listitem">
+                    <div class="feature-icon-box"><i class="ph ph-handshake" aria-hidden="true" style="color:#ffffff !important;"></i></div>
+                    <span class="num" aria-hidden="true">05</span>
+                    <div class="feature-text">
+                      <strong>Collaborations</strong>
+                      <span>Meet creators, performers, artists and enthusiasts who want to build something together.</span>
+                    </div>
+                    <i class="ph ph-arrow-right feature-arrow" aria-hidden="true" style="color:#ffffff !important;"></i>
+                  </li>
+                  <li class="feature-item" data-index="6" role="listitem">
+                    <div class="feature-icon-box"><i class="ph ph-lightbulb" aria-hidden="true" style="color:#ffffff !important;"></i></div>
+                    <span class="num" aria-hidden="true">06</span>
+                    <div class="feature-text">
+                      <strong>Opportunities</strong>
+                      <span>Discover, Jobs, gigs, projects, creative requirements, collaborations and ways to grow through your craft.</span>
+                    </div>
+                    <i class="ph ph-arrow-right feature-arrow" aria-hidden="true" style="color:#ffffff !important;"></i>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 3D Feature Carousel -->
+            <div class="features-right relative h-[360px] w-full flex flex-col items-center justify-center" id="feat-carousel-wrapper">
+              <div class="reveal-content w-full h-[320px]">
+                <div class="feat-carousel" id="feat-carousel" aria-label="Features carousel" role="list">
+                  
+                  <div class="feat-card pos-front" data-index="0" role="listitem" tabindex="0">
+                    <img src="Assets/Features/Feature 1.png" alt="Creative Portfolio" class="feat-card-img w-full h-full object-cover">
+                    <div class="feat-card-blur-left"></div>
+                    <div class="feat-card-blur-right"></div>
+                  </div>
+
+                  <div class="feat-card pos-right" data-index="1" role="listitem" tabindex="0">
+                    <img src="Assets/Features/Feature 2.png" alt="Local Discovery" class="feat-card-img w-full h-full object-cover">
+                    <div class="feat-card-blur-left"></div>
+                    <div class="feat-card-blur-right"></div>
+                  </div>
+
+                  <div class="feat-card pos-back" data-index="2" role="listitem" tabindex="0">
+                    <img src="Assets/Features/Feature 3.png" alt="Workshops & Classes" class="feat-card-img w-full h-full object-cover">
+                    <div class="feat-card-blur-left"></div>
+                    <div class="feat-card-blur-right"></div>
+                  </div>
+
+                  <div class="feat-card pos-back" data-index="3" role="listitem" tabindex="0">
+                    <img src="Assets/Features/Feature 4.png" alt="Events & Experiences" class="feat-card-img w-full h-full object-cover">
+                    <div class="feat-card-blur-left"></div>
+                    <div class="feat-card-blur-right"></div>
+                  </div>
+
+                  <div class="feat-card pos-back" data-index="4" role="listitem" tabindex="0">
+                    <img src="Assets/Features/Feature 5.png" alt="Collaborations" class="feat-card-img w-full h-full object-cover">
+                    <div class="feat-card-blur-left"></div>
+                    <div class="feat-card-blur-right"></div>
+                  </div>
+
+                  <div class="feat-card pos-left" data-index="5" role="listitem" tabindex="0">
+                    <img src="Assets/Features/Feature 6.png" alt="Opportunities" class="feat-card-img w-full h-full object-cover">
+                    <div class="feat-card-blur-left"></div>
+                    <div class="feat-card-blur-right"></div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Feature Badges Grid -->
+          <div class="w-full border border-white/5 bg-[#0e071c]/30 rounded-2xl p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 reveal-content">
+            <div class="flex items-center gap-3">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-shield-star" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Verified Community</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">Trusted creators and quality connections.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-lightning" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Endless Opportunities</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">Discover, learn, collaborate and grow.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-globe" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Built for Creators</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">Tools and spaces designed for your creative journey.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-lock" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Your Privacy Matters</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">Secure, private and in your control.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div><!-- /section-glass -->
+      </div>
+    </section>
+
+    <!-- ── Section 5: Categories ──────────────────────────────────── -->
+    <section id="categories" class="scroll-track w-full h-[250vh] relative">
+      <div class="sticky-container sticky top-0 left-0 w-full h-screen flex items-center justify-center overflow-hidden">
+        <div class="section-glass">
+        <div class="section-content w-full flex flex-col justify-between h-full py-2">
+          
+          <div class="w-full grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-10 items-center">
+            <div class="categories-left">
+              <div class="badge-pill mb-6 reveal-content"><span>CREATIVE WORLDS</span></div>
+              <h2 class="reveal-headline text-4xl md:text-5xl font-heading font-extrabold tracking-tight leading-none">
+                Nine Creative<br><span class="text-brandOrange">Worlds</span> One <span class="text-brandPurple">Network</span>
+              </h2>
+              <hr class="reveal-line border-t border-white/10 my-4">
+              <div class="reveal-content">
+                <p class="text-brandMuted text-base mb-6">Explore nine diverse creative worlds on ATONIX. Discover, connect, and create without limits.</p>
+                <div class="belief-quote my-6">
+                  <p>☆ Do you believe every art form deserves a home?</p>
+                </div>
+                <a href="#register" class="btn btn-primary">
+                  <span>I BELIEVE <i class="ph ph-arrow-right" aria-hidden="true"></i></span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Stacked Moving Category Cards with Dots -->
+            <div class="categories-right relative h-[380px] w-full flex flex-col items-center justify-between" id="cat-carousel-wrapper">
+              <div class="reveal-content w-full h-[330px]">
+                <div class="cat-carousel" id="cat-carousel" aria-label="Creative categories carousel" role="list">
+
+                  <div class="cat-card" data-cat="Performing Arts" style="--card-hue:320" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Performing Art.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-mask-happy cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Performing Arts</h3>
+                      <p class="cat-card-sub">Dance · Theatre · Acting · Comedy</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Visual Arts" style="--card-hue:270" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Visual Art.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-paint-brush cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Visual Arts</h3>
+                      <p class="cat-card-sub">Painting · Sketching · Sculpture · Fine Arts</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Literary Arts" style="--card-hue:40" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Literary Art.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-feather cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Literary Arts</h3>
+                      <p class="cat-card-sub">Writing · Poetry · Storytelling · Scripts</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Film &amp; Cinematic Arts" style="--card-hue:0" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Film and cenematic Art.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-film-strip cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Film &amp; Cinematic Arts</h3>
+                      <p class="cat-card-sub">Filmmaking · Photography · Cinematography</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Craft and Design Arts" style="--card-hue:160" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Craft & Design Art.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-cube cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Craft and Design Arts</h3>
+                      <p class="cat-card-sub">Fashion · Pottery · Interior · Woodwork</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Martial Arts" style="--card-hue:340" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Martial Arts.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-hand-fist cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Martial Arts</h3>
+                      <p class="cat-card-sub">Karate · Kung Fu · Tai Chi · Acrobatics</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Digital &amp; New Media Arts" style="--card-hue:220" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Digital & new media.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-monitor cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Digital &amp; New Media Arts</h3>
+                      <p class="cat-card-sub">Animation · Content · Gaming · AI Art</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Cullinary Arts" style="--card-hue:25" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Cullinary Art.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-cooking-pot cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Cullinary Arts</h3>
+                      <p class="cat-card-sub">Cooking · Baking · Food Styling · Mixology</p>
+                    </div>
+                  </div>
+
+                  <div class="cat-card" data-cat="Music and Sound Arts" style="--card-hue:200" role="listitem" tabindex="0">
+                    <div class="cat-card-bg" style="background-image:url('Category Images/Music &amp; Sound Art.png')"></div>
+                    <div class="cat-card-hover">
+                      <i class="ph ph-music-notes cat-card-icon" aria-hidden="true"></i>
+                      <h3 class="cat-card-title">Music and Sound Arts</h3>
+                      <p class="cat-card-sub">Music Production · Instrumental · Singing · Sound Design</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+              
+              <!-- Carousel Pagination Dots -->
+              <div class="cat-carousel-dots" id="cat-carousel-dots" role="tablist" aria-label="Carousel pagination"></div>
+            </div>
+          </div>
+
+          <!-- Bottom Badges Row -->
+          <div class="w-full border border-white/5 bg-[#0e071c]/30 rounded-2xl p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mt-6 divide-y divide-white/5 md:divide-y-0 lg:divide-x lg:divide-white/5 reveal-content">
+            <div class="flex items-center gap-3">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-globe" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">9 Diverse Worlds</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">Explore multiple creative domains in one place.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3 pt-4 md:pt-0 lg:pl-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-users-three" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Connect &amp; Collaborate</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">Meet creators, share ideas and build together.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3 pt-4 md:pt-0 lg:pl-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-sparkles" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Create Without Limits</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">Express, experiment and bring your vision to life.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3 pt-4 md:pt-0 lg:pl-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-shield-check" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Safe &amp; Inclusive</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">A supportive space for every creator.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-3 pt-4 md:pt-0 lg:pl-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full border border-brandPurple/30 bg-brandPurple/10 flex-shrink-0">
+                <i class="ph ph-infinity" aria-hidden="true" style="color:#ffffff !important; font-size:1.2rem;"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight">Endless Possibilities</h4>
+                <p class="text-[10px] text-brandMuted mt-0.5">One network. Infinite opportunities.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div><!-- /section-glass -->
+      </div>
+    </section>
+
+    <!-- ── Section 6: Early Access + Form ────────────────────────── -->
+
+    <section id="register" class="scroll-track w-full h-[250vh] relative">
+      <div class="sticky-container sticky top-0 left-0 w-full h-screen flex items-center justify-center overflow-hidden">
+        <div class="section-glass register-glass">
+        <div class="section-content w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
+
+          <!-- Left: Perks -->
+          <div class="perks-left">
+            <div class="badge-pill mb-6 reveal-content"><span>EARLY ACCESS</span></div>
+            <h2 class="reveal-headline text-4xl md:text-5xl font-heading font-extrabold tracking-tight leading-none">
+              Reserve Your Place<br><span class="text-brandPurple">In The Creative Movement</span>
+            </h2>
+            <hr class="reveal-line border-t border-white/10 my-4">
+            <div class="reveal-content">
+              <p class="text-brandMuted text-base mb-4">Join ATONIX before launch and become part of the first community shaping a new social network for creativity.</p>
+              
+              <!-- 4-Column Horizontal Benefit Cards -->
+              <div class="perks-cards-container flex flex-col gap-6 mt-6">
+                
+                <!-- Card 1: Creative Professionals -->
+                <div class="perks-horizontal-card wjc-card relative overflow-hidden bg-black border border-white/8 rounded-2xl p-5" id="perks-card-pro">
+                  <div class="text-[9px] font-extrabold tracking-widest text-brandPurple mb-4 uppercase">
+                    For First 500 Creative Professionals
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 relative z-10 text-left">
+                    <!-- Perk 1 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:border-r sm:border-white/10 sm:pr-4">
+                      <div class="perk-icon text-brandPurple text-lg">
+                        <i class="ph ph-percent" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">No Platform Charges</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">For 1 Year After Launch</p>
+                    </div>
+                    <!-- Perk 2 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:border-r sm:border-white/10 sm:px-4">
+                      <div class="perk-icon text-brandPurple text-lg">
+                        <i class="ph ph-shield-check" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">Early Member Badge</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">Show you're a first believer</p>
+                    </div>
+                    <!-- Perk 3 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:border-r sm:border-white/10 sm:px-4">
+                      <div class="perk-icon text-brandPurple text-lg">
+                        <i class="ph ph-sparkles" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">Premium Feature Access</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">Unlock advanced network features</p>
+                    </div>
+                    <!-- Perk 4 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:pl-4">
+                      <div class="perk-icon text-brandPurple text-lg">
+                        <i class="ph ph-user-focus" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">Featured Profile</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">Boosted visibility on the network</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card 2: Creative Enthusiasts -->
+                <div class="perks-horizontal-card wjc-card relative overflow-hidden bg-black border border-white/8 rounded-2xl p-5" id="perks-card-enth">
+                  <div class="text-[9px] font-extrabold tracking-widest text-brandPink mb-4 uppercase">
+                    For First 500 Creative Enthusiasts
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 relative z-10 text-left">
+                    <!-- Perk 1 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:border-r sm:border-white/10 sm:pr-4">
+                      <div class="perk-icon text-brandPink text-lg">
+                        <i class="ph ph-ticket" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">Workshop & Event Discounts</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">Special member pricing on experiences</p>
+                    </div>
+                    <!-- Perk 2 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:border-r sm:border-white/10 sm:px-4">
+                      <div class="perk-icon text-brandPink text-lg">
+                        <i class="ph ph-shield-check" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">Early Member Badge</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">Show you're a first believer</p>
+                    </div>
+                    <!-- Perk 3 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:border-r sm:border-white/10 sm:px-4">
+                      <div class="perk-icon text-brandPink text-lg">
+                        <i class="ph ph-terminal-window" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">Beta Feature Access</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">Try new tools and updates first</p>
+                    </div>
+                    <!-- Perk 4 -->
+                    <div class="perk-column flex flex-col gap-1.5 sm:pl-4">
+                      <div class="perk-icon text-brandPink text-lg">
+                        <i class="ph ph-calendar-star" aria-hidden="true"></i>
+                      </div>
+                      <h4 class="text-[11px] font-bold text-white uppercase tracking-wider leading-snug">Special Event Invites</h4>
+                      <p class="text-[10px] text-brandMuted leading-snug">Priority access to gatherings</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right: Form -->
+          <div class="register-right flex justify-center">
+            <div class="reveal-content w-full max-w-[360px]">
+              <div class="register-card overflow-hidden bg-brandBg/65 p-5 flex flex-col relative" id="register-card" style="clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);">
+                <!-- Gradient Border Mask -->
+                <div class="absolute inset-0 p-[1.5px] pointer-events-none" style="clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); background: linear-gradient(135deg, var(--purple), transparent, var(--pink)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;"></div>
+                
+                <h3 class="text-lg font-heading font-extrabold text-white mb-1 text-center relative z-10">Register Your Interest</h3>
+                <p class="text-[11px] text-brandCyan mb-1 text-center relative z-10">Be the first to know when we launch.</p>
+                <p class="text-[11px] text-brandMuted mb-3 text-center relative z-10">Join our community of creative minds</p>
+
+                <form id="registration-form" class="relative z-10" novalidate>
+                  <!-- Wrap standard form fields -->
+                  <div id="form-fields-wrapper">
+                    <div class="form-group-with-icon mb-2">
+                      <span class="input-icon-left"><i class="ph ph-user" aria-hidden="true"></i></span>
+                      <label for="name" class="sr-only">Full Name</label>
+                      <input type="text" id="name" name="name" required placeholder="Full Name" autocomplete="name" style="padding: 0.65rem 0.65rem 0.65rem 2.25rem; font-size: 0.85rem; min-height: 38px;">
+                    </div>
+
+                    <div class="flex gap-2 mb-2">
+                      <div class="relative w-20 flex-shrink-0">
+                        <select id="country-code" class="w-full text-xs text-white bg-[#0e071c] border border-white/8 rounded-xl outline-none text-center appearance-none" style="height: 38px; padding: 0 0.5rem; text-align-last: center; cursor: pointer;">
+                          <option value="+91">+91 (IN)</option>
+                          <option value="+1">+1 (US)</option>
+                          <option value="+44">+44 (UK)</option>
+                        </select>
+                      </div>
+                      <div class="form-group-with-icon flex-grow">
+                        <span class="input-icon-left"><i class="ph ph-phone" aria-hidden="true"></i></span>
+                        <label for="phone" class="sr-only">Mobile Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Mobile Number" autocomplete="tel" style="padding: 0.65rem 0.65rem 0.65rem 2.25rem; font-size: 0.85rem; min-height: 38px;">
+                      </div>
+                    </div>
+
+                    <div class="form-group-with-icon mb-2">
+                      <span class="input-icon-left"><i class="ph ph-envelope" aria-hidden="true"></i></span>
+                      <label for="email" class="sr-only">Email Address</label>
+                      <input type="email" id="email" name="email" required placeholder="Email Address" autocomplete="email" style="padding: 0.65rem 0.65rem 0.65rem 2.25rem; font-size: 0.85rem; min-height: 38px;">
+                    </div>
+
+                    <!-- City autocomplete -->
+                    <div class="form-group-with-icon mb-2 city-autocomplete-wrap" style="position:relative">
+                      <span class="input-icon-left"><i class="ph ph-map-pin" aria-hidden="true"></i></span>
+                      <label for="city" class="sr-only">Your City</label>
+                      <input type="text" id="city" name="city" placeholder="Your City" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="city-suggestions" aria-autocomplete="list" style="padding: 0.65rem 0.65rem 0.65rem 2.25rem; font-size: 0.85rem; min-height: 38px;">
+                      <ul class="city-suggestions-list" id="city-suggestions" role="listbox" aria-label="City suggestions"></ul>
+                    </div>
+
+                    <!-- Identity selector -->
+                    <div class="mb-2">
+                      <label class="block text-[11px] font-semibold text-brandMuted mb-1">Select Your Identity</label>
+                      <div class="grid grid-cols-2 gap-2">
+                        <button type="button" class="identity-btn active border border-brandPurple bg-brandPurple/12 text-white text-[11px] font-bold py-1.5 transition-all" data-value="Creative Professional" style="min-height:34px;">Creative Professional</button>
+                        <button type="button" class="identity-btn border border-white/8 bg-[#110924]/50 text-brandMuted text-[11px] font-bold py-1.5 transition-all" data-value="Creative Enthusiast" style="min-height:34px;">Creative Enthusiast</button>
+                      </div>
+                      <input type="hidden" id="identity-value" value="Creative Professional">
+                    </div>
+
+                    <!-- Role pills -->
+                    <div class="mb-3">
+                      <label class="block text-[11px] font-semibold text-brandMuted mb-1">Your Creative Role</label>
+                      <div class="flex flex-wrap gap-1.5" role="group" aria-label="Creative role">
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Artist</button>
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Learner</button>
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Performer</button>
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-brandPurple bg-brandPurple/12 text-white active">Creator</button>
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Hobbyist</button>
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Workshop Host</button>
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Event Organizer</button>
+                        <button type="button" class="role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Other</button>
+                      </div>
+                      <input type="hidden" id="role-value" value="Creator">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full py-2 mb-2" id="submit-btn" aria-label="Submit pre-registration form" style="min-height:38px;">
+                      <span>I BELIEVE <i class="ph ph-arrow-right" aria-hidden="true"></i></span>
+                    </button>
+                  </div>
+
+                  <!-- OTP Fields Wrapper (Hidden initially) -->
+                  <div id="otp-fields-wrapper" class="hidden flex flex-col gap-2 relative z-10 text-left">
+                    <p class="text-[10px] text-brandMuted text-center">Verify your email. Enter the 6-digit OTP code sent to:</p>
+                    <p id="otp-target-email" class="text-xs font-bold text-white text-center mb-2"></p>
+                    
+                    <div class="form-group-with-icon mb-2">
+                      <span class="input-icon-left"><i class="ph ph-key" aria-hidden="true"></i></span>
+                      <label for="otp-code" class="sr-only">Verification Code</label>
+                      <input type="text" id="otp-code" maxlength="6" placeholder="Verification Code" style="padding: 0.65rem 0.65rem 0.65rem 2.25rem; font-size: 0.95rem; min-height: 38px; text-align: center; letter-spacing: 0.4em;">
+                    </div>
+
+                    <button type="button" class="btn btn-primary w-full py-2 mb-2" id="verify-otp-btn" style="min-height:38px;">
+                      <span>VERIFY & SUBMIT <i class="ph ph-check" aria-hidden="true"></i></span>
+                    </button>
+
+                    <div class="flex justify-between items-center px-1">
+                      <button type="button" class="text-[9px] text-brandCyan hover:underline bg-transparent border-none outline-none cursor-pointer" id="resend-otp-btn">
+                        Resend Code
+                      </button>
+                      <button type="button" class="text-[9px] text-brandMuted hover:underline bg-transparent border-none outline-none cursor-pointer" id="cancel-otp-btn">
+                        Back to Form
+                      </button>
+                    </div>
+                  </div>
+
+                  <p class="text-[9px] text-brandMuted text-center flex items-center justify-center gap-1.5 mt-1">
+                    <i class="ph ph-lock text-brandPurple" aria-hidden="true"></i>
+                    No noise. No spam. Just the future of creativity.
+                  </p>
+                </form>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div><!-- /section-glass -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════ FOOTER -->
+  <footer class="footer-minimal">
+    <p class="footer-tagline-large">power to believe</p>
+
+    <div class="footer-contact-groups">
+      <!-- Contact Group -->
+      <div class="footer-contact-group">
+        <span class="footer-group-label">Contact</span>
+        <div class="footer-group-items">
+          <a href="mailto:business@atonix.word" class="footer-contact-item">
+            <i class="ph ph-envelope" aria-hidden="true"></i>
+            business@atonix.word
+          </a>
+          <a href="tel:+918888776598" class="footer-contact-item">
+            <i class="ph ph-phone" aria-hidden="true"></i>
+            +91-8888776598
+          </a>
+        </div>
+      </div>
+      
+      <!-- Socials Group -->
+      <div class="footer-contact-group">
+        <span class="footer-group-label">Socials</span>
+        <div class="footer-group-items">
+          <a href="https://linkedin.com/company/aton-ix" target="_blank" rel="noopener noreferrer" class="footer-contact-item">
+            <i class="ph ph-linkedin-logo" aria-hidden="true"></i>
+            LinkedIn
+          </a>
+          <a href="https://instagram.com/atonix_world" target="_blank" rel="noopener noreferrer" class="footer-contact-item">
+            <i class="ph ph-instagram-logo" aria-hidden="true"></i>
+            Instagram
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back to top button -->
+    <div class="footer-back-to-top">
+      <button id="back-to-top-btn" class="btn-back-to-top" aria-label="Scroll to top of the page">
+        <i class="ph ph-arrow-up"></i> BACK TO TOP
+      </button>
+    </div>
+
+    <div class="footer-bottom-row">
+      <span class="text-xs" style="color:rgba(255,255,255,0.22)">&copy; 2026 ATONIX. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-content">
+      <i class="ph ph-check-circle text-green-400 text-lg" aria-hidden="true"></i>
+      <span id="toast-message">Pre-registered successfully!</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════ PRE-REGISTRATION MODAL ════════════════════════ -->
+  <div class="modal-overlay" id="register-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-panel" id="register-modal-panel">
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Close modal">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="text-center mb-6">
+        <a href="#" class="logo-wrapper justify-center mb-4 inline-flex">
+          <img src="Logos/logo word.png" alt="ATONIX" class="h-5 w-auto logo-wordmark">
+        </a>
+        <h2 id="modal-title" class="text-2xl font-heading font-extrabold text-white mb-1.5">Register Your Interest</h2>
+        <p class="text-sm text-brandMuted">Be the first to know when we launch.<br>Join our community of creative minds.</p>
+      </div>
+
+      <!-- Form -->
+      <form id="modal-registration-form" novalidate>
+
+        <div id="modal-form-fields-wrapper">
+          <div class="form-group-with-icon mb-3">
+            <span class="input-icon-left"><i class="ph ph-user" aria-hidden="true"></i></span>
+            <label for="modal-name" class="sr-only">Full Name</label>
+            <input type="text" id="modal-name" name="modal-name" required placeholder="Full Name" autocomplete="name">
+          </div>
+
+          <div class="flex gap-2 mb-3">
+            <div class="relative w-24 flex-shrink-0">
+              <select id="modal-country-code" class="w-full text-sm text-white bg-[#0e071c] border border-white/8 rounded-xl outline-none text-center appearance-none" style="height: 44px; padding: 0 0.5rem; text-align-last: center; cursor: pointer;">
+                <option value="+91">+91 (IN)</option>
+                <option value="+1">+1 (US)</option>
+                <option value="+44">+44 (UK)</option>
+              </select>
+            </div>
+            <div class="form-group-with-icon flex-grow">
+              <span class="input-icon-left"><i class="ph ph-phone" aria-hidden="true"></i></span>
+              <label for="modal-phone" class="sr-only">Mobile Number</label>
+              <input type="tel" id="modal-phone" name="modal-phone" placeholder="Mobile Number" autocomplete="tel">
+            </div>
+          </div>
+
+          <div class="form-group-with-icon mb-3">
+            <span class="input-icon-left"><i class="ph ph-envelope" aria-hidden="true"></i></span>
+            <label for="modal-email" class="sr-only">Email Address</label>
+            <input type="email" id="modal-email" name="modal-email" required placeholder="Email Address" autocomplete="email">
+          </div>
+
+          <div class="form-group-with-icon mb-3 city-autocomplete-wrap" style="position:relative">
+            <span class="input-icon-left"><i class="ph ph-map-pin" aria-hidden="true"></i></span>
+            <label for="modal-city" class="sr-only">Your City</label>
+            <input type="text" id="modal-city" name="modal-city" placeholder="Your City" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="modal-city-suggestions" aria-autocomplete="list">
+            <ul class="city-suggestions-list" id="modal-city-suggestions" role="listbox" aria-label="City suggestions"></ul>
+          </div>
+
+          <!-- Identity -->
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-brandMuted mb-2">Select Your Identity</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" class="modal-identity-btn active border border-brandPurple bg-brandPurple/12 text-white text-xs font-bold py-2.5 rounded-lg transition-all" data-value="Creative Professional" style="border-radius:10px">Creative Professional</button>
+              <button type="button" class="modal-identity-btn border border-white/8 bg-[#110924]/50 text-brandMuted text-xs font-bold py-2.5 rounded-lg transition-all" data-value="Creative Enthusiast" style="border-radius:10px">Creative Enthusiast</button>
+            </div>
+            <input type="hidden" id="modal-identity-value" value="Creative Professional">
+          </div>
+
+          <!-- Role pills -->
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-brandMuted mb-2">Your Creative Role</label>
+            <div class="flex flex-wrap gap-1.5" role="group" aria-label="Creative role">
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Artist</button>
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Learner</button>
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Performer</button>
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-brandPurple bg-brandPurple/12 text-white active">Creator</button>
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Hobbyist</button>
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Workshop Host</button>
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Event Organizer</button>
+              <button type="button" class="modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted">Other</button>
+            </div>
+            <input type="hidden" id="modal-role-value" value="Creator">
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn btn-primary w-full py-3.5 mb-2" id="modal-submit-btn" style="font-size:1rem; border-radius:0">
+            <span>I BELIEVE <i class="ph ph-arrow-right" aria-hidden="true"></i></span>
+          </button>
+        </div>
+
+        <!-- Modal OTP Fields Wrapper (Hidden initially) -->
+        <div id="modal-otp-fields-wrapper" class="hidden flex flex-col gap-3 relative z-10 text-left">
+          <p class="text-xs text-brandMuted text-center">Verify your email. Enter the 6-digit OTP code sent to:</p>
+          <p id="modal-otp-target-email" class="text-sm font-bold text-white text-center mb-3"></p>
+          
+          <div class="form-group-with-icon mb-3">
+            <span class="input-icon-left"><i class="ph ph-key" aria-hidden="true"></i></span>
+            <label for="modal-otp-code" class="sr-only">Verification Code</label>
+            <input type="text" id="modal-otp-code" maxlength="6" placeholder="Verification Code" style="text-align: center; letter-spacing: 0.4em; font-size: 1.1rem; height: 44px; padding: 0.65rem 0.65rem 0.65rem 2.25rem;">
+          </div>
+
+          <button type="button" class="btn btn-primary w-full py-3.5 mb-2" id="modal-verify-otp-btn" style="font-size: 1rem; border-radius: 0;">
+            <span>VERIFY & SUBMIT <i class="ph ph-check" aria-hidden="true"></i></span>
+          </button>
+
+          <div class="flex justify-between items-center px-1 mt-1">
+            <button type="button" class="text-[10px] text-brandCyan hover:underline bg-transparent border-none outline-none cursor-pointer" id="modal-resend-otp-btn">
+              Resend Code
+            </button>
+            <button type="button" class="text-[10px] text-brandMuted hover:underline bg-transparent border-none outline-none cursor-pointer" id="modal-cancel-otp-btn">
+              Back to Form
+            </button>
+          </div>
+        </div>
+
+        <p class="text-center text-[10px] text-brandMuted mt-4 flex items-center justify-center gap-1.5">
+          <i class="ph ph-lock text-brandPurple" aria-hidden="true"></i>
+          No noise. No spam. Just the future of creativity.
+        </p>
+      </form>
+    </div>
+  </div>
+
+
+
+  <!-- JavaScript -->
+  <script src="script.js?v=2.1"></script>
+</body>
+</html>
