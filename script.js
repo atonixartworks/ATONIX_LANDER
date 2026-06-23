@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Your Supabase Project URL
     SUPABASE_URL: "https://ucmsgxdggqbjroljebdx.supabase.co",
     // Your Supabase public/anon Key (Paste the full publishable key here)
-    SUPABASE_ANON_KEY: "sb_publishable_3A2FQ_OSYQG-f8crzSEbtw_cmAMxPei",
+    SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjbXNneGRnZ3FianJvbGplYmR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODIyNTksImV4cCI6MjA5NzQ1ODI1OX0.ESiAlrAJ1eLGk3EiHjvRKkU7Oz6TNAxi_sV0YwLylhc",
     // Your database table name in Supabase
     SUPABASE_TABLE: "waitlist",
     // Enable/disable localStorage database backup
@@ -142,6 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Smooth Scroll Variables
   let smoothScrollTop = window.scrollY;
   let targetScrollTop = window.scrollY;
+
+  // Real scroll direction and inactivity variables
+  let lastActualScrollY = window.scrollY;
+  let scrollInactivityTimer = null;
+  const heroScrollHint = document.getElementById('hero-scroll-hint');
 
   // ══════════════════════════════════════════════════════════════════════
   // 1. Canvas Frame Animation Engine
@@ -289,27 +294,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Scroll Down Hint Visibility
-    const heroScrollHint = document.getElementById('hero-scroll-hint');
-    if (currentScrollY > 50) {
-      heroScrollHint?.classList.add('hidden-hint');
-    } else {
+    // At the top, keep the hint visible and clear the inactivity timer if no modal is open.
+    // Past 50px, the inactivity timer handles the visibility state.
+    const regModalOpen = document.getElementById('register-modal')?.classList.contains('open');
+    const succModalOpen = document.getElementById('success-modal')?.classList.contains('open');
+    const modalIsOpen = regModalOpen || succModalOpen;
+
+    if (currentScrollY <= 50 && !modalIsOpen) {
       heroScrollHint?.classList.remove('hidden-hint');
+      clearTimeout(scrollInactivityTimer);
+    } else if (modalIsOpen) {
+      heroScrollHint?.classList.add('hidden-hint');
     }
 
     // AUTO HIDE / SHOW
-    if (currentScrollY <= 20) {
+    // Use raw window.scrollY to detect direction changes instantly
+    const actualScrollY = window.scrollY;
+
+    if (actualScrollY <= 20) {
       siteHeader?.classList.remove('nav-hidden');
       siteHeader?.classList.add('at-top');
-    } else if (currentScrollY > lastScrollY) {
+    } else if (actualScrollY > lastActualScrollY) {
       // Scrolling down
       siteHeader?.classList.add('nav-hidden');
       siteHeader?.classList.remove('at-top');
-    } else {
+    } else if (actualScrollY < lastActualScrollY) {
       // Scrolling up
       siteHeader?.classList.remove('nav-hidden');
       siteHeader?.classList.remove('at-top');
     }
 
+    lastActualScrollY = actualScrollY;
     lastScrollY = currentScrollY;
   }
 
@@ -355,15 +370,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Nav active state on scroll (section tracking)
   // ══════════════════════════════════════════════════════════════════════
   const navLinks = document.querySelectorAll('.nav-links a[id]');
-  const sectionIds = ['about', 'audiences', 'features', 'categories', 'register'];
+  const sectionIds = ['hero-section', 'about', 'audiences', 'features', 'categories', 'register'];
   const sectionEls = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
 
   const navMap = {
-    about:      'nav-about',
-    audiences:  'nav-audiences',
-    features:   'nav-features',
-    categories: 'nav-categories',
-    register:   'nav-register',
+    'hero-section': 'nav-home',
+    about:          'nav-about',
+    audiences:      'nav-audiences',
+    features:       'nav-features',
+    categories:     'nav-categories',
+    register:       'nav-register',
   };
 
   function updateNavActive(scrollTop = window.scrollY) {
@@ -483,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (p < 0.18) {
           // Stage 1: Headline materialises at screen center as big text (floats up 80px into position)
           const t      = p / 0.18;
-          const easeT  = 1 - Math.pow(1 - t, 2); // quadratic ease-out
+          const easeT  = (1 - Math.cos(t * Math.PI)) / 2; // sine ease-in-out for super smooth entry
           headlineOpacity   = t;
           lineScale         = 0;
           contentOpacity    = 0;
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (p < 0.52) {
           // Stage 2: Headline morphs into layout position, divider draws (extended, slower)
           const t      = (p - 0.18) / 0.34;
-          const easeT  = 1 - Math.pow(1 - t, 3); // cubic ease-out
+          const easeT  = (1 - Math.cos(t * Math.PI)) / 2; // sine ease-in-out for super smooth morphing
           headlineOpacity   = 1;
           lineScale         = easeT;
           contentOpacity    = 0;
@@ -508,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (p < 0.70) {
           // Stage 3: Content fades in, slides up (starts after headline takes its place)
           const t      = (p - 0.52) / 0.18;
-          const easeT  = 1 - Math.pow(1 - t, 3); // cubic ease-out
+          const easeT  = (1 - Math.cos(t * Math.PI)) / 2; // sine ease-in-out for super smooth content reveal
           headlineOpacity   = 1;
           lineScale         = 1;
           contentOpacity    = easeT;
@@ -586,8 +602,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function isSettledOnSection(scrollTop) {
+    // 1. If modals are open, do not show the hint.
+    const regModalOpen = document.getElementById('register-modal')?.classList.contains('open');
+    const succModalOpen = document.getElementById('success-modal')?.classList.contains('open');
+    if (regModalOpen || succModalOpen) return false;
+
+    // 2. If at the very top, show the hint.
+    if (scrollTop <= 50) return true;
+
+    // 3. Otherwise, never show the hint on content/headline sections.
+    return false;
+  }
+
+  function handleScrollActivity() {
+    // Hide hint immediately when scrolling
+    heroScrollHint?.classList.add('hidden-hint');
+
+    // Clear existing timer
+    clearTimeout(scrollInactivityTimer);
+
+    // Start a new 3-second timer
+    scrollInactivityTimer = setTimeout(() => {
+      if (isSettledOnSection(window.scrollY)) {
+        heroScrollHint?.classList.remove('hidden-hint');
+      }
+    }, 3000);
+  }
+
   function handleScroll() {
     targetScrollTop = window.scrollY;
+    handleScrollActivity();
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -707,6 +752,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let resumeAutoplayTimer;
 
     carouselContainer?.addEventListener('wheel', (e) => {
+      // Only intercept wheel scroll if the Categories section is fully revealed
+      const catTrack = document.getElementById('categories');
+      if (catTrack) {
+        const catRect = catTrack.getBoundingClientRect();
+        const catTrackTop = catRect.top + window.scrollY;
+        const catScrollRange = catTrack.offsetHeight - window.innerHeight;
+        const catProgress = (window.scrollY - catTrackTop) / catScrollRange;
+        
+        // Skip interception if the section content is not fully active
+        if (catProgress < 0.70 || catProgress >= 0.90) {
+          return;
+        }
+      }
+
       // Prevent the page from scrolling while hovering and scrolling the cards
       e.preventDefault();
       
@@ -782,80 +841,154 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Professional triggers
-  const setupTriggers = (containerSelector, imgId, badgeId, titleId, subId, distId, hostId, countId) => {
-    const triggers = document.querySelectorAll(`${containerSelector} .wjc-card`);
-    const imgEl    = document.getElementById(imgId);
-    const badgeEl  = document.getElementById(badgeId);
-    const titleEl  = document.getElementById(titleId);
-    const subEl    = document.getElementById(subId);
-    const distEl   = document.getElementById(distId);
-    const hostEl   = document.getElementById(hostId);
-    const countEl  = document.getElementById(countId);
+  // ── Scroll Centering Helper for Card Tap on Mobile ──
+  const scrollCardIntoView = (card) => {
+    const grid = card.closest('.why-join-cards-grid');
+    if (!grid) return;
 
-    triggers.forEach(trigger => {
-      const activate = () => {
-        triggers.forEach(t => t.classList.remove('active'));
-        trigger.classList.add('active');
-        if (!imgEl) return;
-        imgEl.style.opacity = '0.15';
-        setTimeout(() => {
-          if (badgeEl) badgeEl.innerText = trigger.getAttribute('data-badge');
-          imgEl.src = trigger.getAttribute('data-image');
-          if (titleEl) titleEl.innerText = trigger.getAttribute('data-title');
-          if (subEl)   subEl.innerText   = trigger.getAttribute('data-sub');
-          if (distEl)  distEl.innerHTML  = `<i class="ph ph-map-pin mr-1.5 text-brandPink" aria-hidden="true" style="color:var(--pink) !important;"></i> ${trigger.getAttribute('data-dist')}`;
-          if (hostEl)  hostEl.innerHTML  = `<i class="ph ph-user mr-1.5" aria-hidden="true"></i> ${trigger.getAttribute('data-host')}`;
-          if (countEl) countEl.innerHTML = `<i class="ph ph-users mr-1.5" aria-hidden="true"></i> ${trigger.getAttribute('data-count')}`;
-          imgEl.style.opacity = '1';
-        }, 140);
-      };
-      trigger.addEventListener('mouseenter', activate);
+    const wrapper = card.closest('.wjc-card-wrapper');
+    if (!wrapper) return;
+
+    const gridRect = grid.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+
+    const paddingLeft = parseFloat(window.getComputedStyle(grid).paddingLeft) || 20;
+    const targetScrollLeft = grid.scrollLeft + (wrapperRect.left - gridRect.left) - paddingLeft;
+
+    grid.scrollTo({
+      left: targetScrollLeft,
+      behavior: 'smooth'
     });
   };
 
-  // Professionals cards hover to change showcase image
+  // Professionals cards hover/click to change showcase image
   const profCards = document.querySelectorAll('#audience-professionals .wjc-card');
   const profShowcaseImg = document.getElementById('prof-showcase-img');
+  
+  const activateProfCard = (index, userInitiated = false) => {
+    if (index < 0 || index >= profCards.length) return;
+    const card = profCards[index];
+    profCards.forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    
+    if (profShowcaseImg) {
+      profShowcaseImg.style.opacity = '0';
+      setTimeout(() => {
+        profShowcaseImg.src = `Assets/Creative Professional Cards/CP${index + 1}.png?v=3`;
+        profShowcaseImg.style.opacity = '1';
+      }, 150);
+    }
+
+    if (userInitiated && window.innerWidth <= 992) {
+      scrollCardIntoView(card);
+    }
+  };
+
   if (profCards.length > 0 && profShowcaseImg) {
     profCards.forEach((card, index) => {
-      card.addEventListener('mouseenter', () => {
-        profShowcaseImg.style.opacity = '0';
-        setTimeout(() => {
-          profShowcaseImg.src = `Assets/Creative Professional Cards/CP${index + 1}.png`;
-          profShowcaseImg.style.opacity = '1';
-        }, 150);
-      });
+      card.addEventListener('mouseenter', () => activateProfCard(index, false));
+      card.addEventListener('click', () => activateProfCard(index, true));
     });
   }
 
-  setupTriggers('#audience-users',         'enth-showcase-img', 'enth-showcase-badge', 'enth-showcase-title', 'enth-showcase-sub', 'enth-showcase-dist', 'enth-showcase-host', 'enth-showcase-count');
+  // Enthusiasts cards hover/click to change showcase image
+  const enthCards = document.querySelectorAll('#audience-users .wjc-card');
+  const enthShowcaseImg = document.getElementById('enth-showcase-img');
+
+  const activateEnthCard = (index, userInitiated = false) => {
+    if (index < 0 || index >= enthCards.length) return;
+    const card = enthCards[index];
+    enthCards.forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    
+    if (enthShowcaseImg) {
+      enthShowcaseImg.style.opacity = '0';
+      setTimeout(() => {
+        enthShowcaseImg.src = `Assets/Creative Enthusiasts Cards/CE${index + 1}.png?v=3`;
+        enthShowcaseImg.style.opacity = '1';
+      }, 150);
+    }
+
+    if (userInitiated && window.innerWidth <= 992) {
+      scrollCardIntoView(card);
+    }
+  };
+
+  if (enthCards.length > 0 && enthShowcaseImg) {
+    enthCards.forEach((card, index) => {
+      card.addEventListener('mouseenter', () => activateEnthCard(index, false));
+      card.addEventListener('click', () => activateEnthCard(index, true));
+    });
+  }
+
+  // Set first card active on load for both tabs
+  if (profCards.length > 0) {
+    profCards[0].classList.add('active');
+  }
+  if (enthCards.length > 0) {
+    activateEnthCard(0, false);
+  }
+
+  // ── Scroll-Based Active Card Sync for Mobile Grids ──
+  const whyJoinGrids = document.querySelectorAll('.why-join-cards-grid');
+  whyJoinGrids.forEach(grid => {
+    let scrollTimeout;
+    grid.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        if (window.innerWidth > 992) return;
+        
+        const gridRect = grid.getBoundingClientRect();
+        const gridCenter = gridRect.left + gridRect.width / 2;
+        
+        const cardWrappers = grid.querySelectorAll('.wjc-card-wrapper');
+        let closestIndex = -1;
+        let minDiff = Infinity;
+        
+        cardWrappers.forEach((wrapper, idx) => {
+          const rect = wrapper.getBoundingClientRect();
+          const center = rect.left + rect.width / 2;
+          const diff = Math.abs(center - gridCenter);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestIndex = idx;
+          }
+        });
+        
+        if (closestIndex !== -1) {
+          const isProfessionals = grid.closest('#audience-professionals') !== null;
+          if (isProfessionals) {
+            activateProfCard(closestIndex, false);
+          } else {
+            activateEnthCard(closestIndex, false);
+          }
+        }
+      }, 80);
+    });
+  });
 
   // ══════════════════════════════════════════════════════════════════════
-  // 9. Features 3D Carousel
+  // 9. Features Horizontal Slider
   // ══════════════════════════════════════════════════════════════════════
   const featCards = document.querySelectorAll('.feat-card');
   const totalFeatCards = featCards.length;
   const featureItems = document.querySelectorAll('.feature-item');
+  const featSliderTrack = document.getElementById('feat-slider-track');
   let currentFeatIndex = 0;
 
   function updateFeatCarousel(index) {
     if (totalFeatCards === 0) return;
     currentFeatIndex = (index + totalFeatCards) % totalFeatCards;
 
+    if (featSliderTrack) {
+      featSliderTrack.style.transform = `translateX(-${currentFeatIndex * (100 / totalFeatCards)}%)`;
+    }
+
     featCards.forEach((card, idx) => {
-      card.classList.remove('pos-front', 'pos-left', 'pos-right', 'pos-back');
-      
-      const diff = (idx - currentFeatIndex + totalFeatCards) % totalFeatCards;
-      
-      if (diff === 0) {
-        card.classList.add('pos-front');
-      } else if (diff === totalFeatCards - 1) {
-        card.classList.add('pos-left');
-      } else if (diff === 1) {
-        card.classList.add('pos-right');
+      if (idx === currentFeatIndex) {
+        card.classList.add('active');
       } else {
-        card.classList.add('pos-back');
+        card.classList.remove('active');
       }
     });
 
@@ -869,9 +1002,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Hover triggers on left items
+  // Hover and click triggers on left items
   featureItems.forEach((item, idx) => {
     item.addEventListener('mouseenter', () => {
+      updateFeatCarousel(idx);
+    });
+    item.addEventListener('click', () => {
       updateFeatCarousel(idx);
     });
   });
@@ -888,6 +1024,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastFeatWheelTime = 0;
 
   featCarouselContainer?.addEventListener('wheel', (e) => {
+    // Only intercept wheel scroll if the Features section is fully revealed
+    const featTrack = document.getElementById('features');
+    if (featTrack) {
+      const featRect = featTrack.getBoundingClientRect();
+      const featTrackTop = featRect.top + window.scrollY;
+      const featScrollRange = featTrack.offsetHeight - window.innerHeight;
+      const featProgress = (window.scrollY - featTrackTop) / featScrollRange;
+
+      // Skip interception if the section content is not fully active
+      if (featProgress < 0.70 || featProgress >= 0.90) {
+        return;
+      }
+    }
+
     e.preventDefault();
     const now = performance.now();
     if (now - lastFeatWheelTime > 40) {
@@ -920,8 +1070,112 @@ document.addEventListener('DOMContentLoaded', () => {
   const enthProgressFill   = document.getElementById('enth-progress-fill');
   const worldsEl           = document.getElementById('live-worlds-count');
 
+  // Ticker list of recent joins (holds database values or fallbacks)
+  let recentJoins = [
+    { name: 'Rahul S.', city: 'Mumbai' },
+    { name: 'Priya A.', city: 'Delhi' },
+    { name: 'Karan V.', city: 'Bengaluru' }
+  ];
+
+  async function updateRecentJoinsFromDb() {
+    const hasSupabase = CONFIG.SUPABASE_URL && CONFIG.SUPABASE_URL.trim() !== "" && 
+                        CONFIG.SUPABASE_ANON_KEY && CONFIG.SUPABASE_ANON_KEY.trim() !== "";
+    if (!hasSupabase) return;
+
+    const cleanedUrl = CONFIG.SUPABASE_URL.endsWith('/') ? CONFIG.SUPABASE_URL.slice(0, -1) : CONFIG.SUPABASE_URL;
+    let dataLoaded = false;
+
+    // 1. Try secure RPC endpoint first (highly recommended for production/security)
+    try {
+      const endpoint = `${cleanedUrl}/rest/v1/rpc/get_recent_joins`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        const dbUsers = await res.json();
+        if (Array.isArray(dbUsers) && dbUsers.length > 0) {
+          formatAndSetJoins(dbUsers);
+          dataLoaded = true;
+        }
+      }
+    } catch (rpcErr) {
+      console.warn('RPC get_recent_joins not available. Trying direct select.', rpcErr);
+    }
+
+    // 2. Direct Select Fallback (requires SELECT policy on table)
+    if (!dataLoaded) {
+      async function tryFetch(orderCol) {
+        const orderParam = orderCol ? `&order=${orderCol}.desc` : '';
+        const endpoint = `${cleanedUrl}/rest/v1/${CONFIG.SUPABASE_TABLE}?select=name,city${orderParam}&limit=3`;
+        const res = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'apikey': CONFIG.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
+          }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      }
+
+      try {
+        let dbUsers = null;
+        try {
+          dbUsers = await tryFetch('id');
+        } catch (e) {
+          try {
+            dbUsers = await tryFetch('created_at');
+          } catch (e2) {
+            try {
+              dbUsers = await tryFetch(null);
+            } catch (e3) {
+              // ignore
+            }
+          }
+        }
+
+        if (Array.isArray(dbUsers) && dbUsers.length > 0) {
+          formatAndSetJoins(dbUsers);
+        }
+      } catch (err) {
+        console.warn('Failed direct select from Supabase:', err);
+      }
+    }
+
+    function formatAndSetJoins(dbUsers) {
+      const formattedUsers = dbUsers.map(u => {
+        let displayName = u.name || 'Anonymous';
+        const parts = displayName.trim().split(/\s+/);
+        if (parts.length > 1) {
+          displayName = `${parts[0]} ${parts[parts.length - 1][0]}.`;
+        }
+        return {
+          name: displayName,
+          city: u.city || 'Somewhere'
+        };
+      });
+
+      const fallbacks = [
+        { name: 'Rahul S.', city: 'Mumbai' },
+        { name: 'Priya A.', city: 'Delhi' },
+        { name: 'Karan V.', city: 'Bengaluru' }
+      ];
+      while (formattedUsers.length < 3) {
+        formattedUsers.push(fallbacks[formattedUsers.length]);
+      }
+      recentJoins = formattedUsers;
+    }
+  }
+
   // Helper to fetch live waitlist counts from Supabase
   async function fetchWaitlistStats(isInitial = false) {
+    updateRecentJoinsFromDb();
+
     const hasSupabase = CONFIG.SUPABASE_URL && CONFIG.SUPABASE_URL.trim() !== "" && 
                         CONFIG.SUPABASE_ANON_KEY && CONFIG.SUPABASE_ANON_KEY.trim() !== "";
     
@@ -1072,6 +1326,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Set up live real-time updates (poll database every 10 seconds)
   setInterval(() => fetchWaitlistStats(false), 10000);
+
+  // ── Recent Joins Ticker (Flash) ──
+
+  const flashEl = document.getElementById('recent-joins-flash');
+  if (flashEl) {
+    let joinIdx = 0;
+    
+    function showNextJoin() {
+      // 1. Fade out and slide right slightly
+      flashEl.classList.remove('opacity-100', 'translate-x-0');
+      flashEl.classList.add('opacity-0', 'translate-x-2');
+      
+      setTimeout(() => {
+        // 2. Change text
+        const person = recentJoins[joinIdx];
+        flashEl.textContent = `${person.name} (${person.city}) joined`;
+        
+        // 3. Fade in and slide to original position
+        flashEl.classList.remove('opacity-0', 'translate-x-2');
+        flashEl.classList.add('opacity-100', 'translate-x-0');
+        
+        // 4. Update index for next time
+        joinIdx = (joinIdx + 1) % recentJoins.length;
+      }, 500); // match transition duration
+    }
+    
+    // Start ticker
+    setTimeout(showNextJoin, 1500); // first show
+    setInterval(showNextJoin, 6000); // repeat every 6 seconds
+  }
 
   // Simulated real-time signup every 8-15 seconds
   function scheduleNextSignup() {
@@ -1487,8 +1771,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const otpInput = document.getElementById(`${prefix}otp-code`);
     const otpCode = otpInput?.value?.trim() || '';
 
-    if (!/^\d{6}$/.test(otpCode)) {
-      alert("Please enter a valid 6-digit verification code.");
+    if (!/^\d{6}$|^\d{8}$/.test(otpCode)) {
+      alert("Please enter a valid 6 or 8-digit verification code.");
       otpInput?.focus();
       return;
     }
@@ -1524,8 +1808,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal();
       }
       
-      // Scroll inline to top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const registeredName = tempFormData.name;
 
       // Animate counters and progress
       setTimeout(() => {
@@ -1540,8 +1823,17 @@ document.addEventListener('DOMContentLoaded', () => {
         pulseCard(totalCard);
         updateProgressBars();
         
-        let apiNote = dbResult.api ? " Saved to waitlist database!" : " Saved locally.";
-        showToast(`Welcome, <strong>${tempFormData.name}</strong>! Your email has been verified and you are pre-registered.${apiNote} 🎨`);
+        // Open success modal and populate name
+        const successNameEl = document.getElementById('success-user-name');
+        if (successNameEl) {
+          successNameEl.textContent = registeredName;
+        }
+        const successModal = document.getElementById('success-modal');
+        if (successModal) {
+          successModal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+          heroScrollHint?.classList.add('hidden-hint');
+        }
       }, 900);
 
       resetForm();
@@ -1705,6 +1997,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalPrevFocus = document.activeElement;
     modalOverlay?.classList.add('open');
     document.body.style.overflow = 'hidden';
+    heroScrollHint?.classList.add('hidden-hint');
     // Move focus into modal after transition
     setTimeout(() => {
       const firstInput = modalPanel?.querySelector('input, select, button');
@@ -1716,6 +2009,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalOverlay?.classList.remove('open');
     document.body.style.overflow = '';
     modalPrevFocus?.focus();
+    handleScrollActivity();
   }
 
   openModalBtn?.addEventListener('click', openModal);
@@ -1733,10 +2027,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Success Modal closing handlers
+  const successModal = document.getElementById('success-modal');
+  const successModalCloseBtn = document.getElementById('success-modal-close-btn');
+  const successModalCta = document.getElementById('success-modal-cta');
+
+  function closeSuccessModal() {
+    successModal?.classList.remove('open');
+    document.body.style.overflow = '';
+    handleScrollActivity();
+  }
+
+  successModalCloseBtn?.addEventListener('click', closeSuccessModal);
+  successModalCta?.addEventListener('click', closeSuccessModal);
+
+  // Close success modal on overlay click (outside panel)
+  successModal?.addEventListener('click', (e) => {
+    if (e.target === successModal) closeSuccessModal();
+  });
+
+  // Close success modal on ESC key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && successModal?.classList.contains('open')) {
+      closeSuccessModal();
+    }
+  });
+
   // Also wire up the section "PRE-REGISTER" / "I BELIEVE" buttons to open modal
   document.querySelectorAll('a[href="#register"]').forEach(link => {
-    // Skip interception if it's the desktop or mobile "Early Access" navigation link
-    if (link.id === 'nav-register' || link.textContent.includes('Early Access')) {
+    // Skip interception if it's the desktop or mobile navigation/Early Access links
+    if (
+      link.id === 'nav-register' || 
+      link.classList.contains('mobile-nav-link') || 
+      link.textContent.toLowerCase().includes('early access')
+    ) {
       return;
     }
     link.addEventListener('click', (e) => {
@@ -1942,6 +2266,11 @@ document.addEventListener('DOMContentLoaded', () => {
   logoWrappers.forEach(logo => {
     logo.addEventListener('click', (e) => {
       e.preventDefault();
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      sessionStorage.setItem('scroll_to_top', 'true');
+      window.scrollTo(0, 0);
       window.location.reload();
     });
   });
@@ -1993,15 +2322,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       card.style.setProperty('--bg-x', pctX);
       card.style.setProperty('--bg-y', pctY);
+      const currentScale = window.innerWidth <= 992 ? 1.0 : SCALE_HOVER;
       card.style.transform = [
         'perspective(' + PERSPECTIVE + 'px)',
         'rotateX(' + rotX.toFixed(2) + 'deg)',
         'rotateY(' + rotY.toFixed(2) + 'deg)',
-        'scale(' + SCALE_HOVER + ')'
+        'scale(' + currentScale + ')'
       ].join(' ');
     }
 
     document.querySelectorAll('.wjc-card').forEach(card => {
+      // Skip holographic 3D effects entirely on mobile/tablet
+      if (window.innerWidth <= 992) return;
+
       card.addEventListener('mouseenter', () => {
         card.classList.add('holo-active');
         // Reset CSS transition so transform is instant when JS takes over
@@ -2037,6 +2370,149 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   })();
+
+  // ── Drag & Touch Swipe Support ──
+  function setupCarouselDrag(elementId, onSwipe) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    let startX = 0;
+    let startY = 0;
+    let distX = 0;
+    let distY = 0;
+    let isDragging = false;
+    const threshold = 40; // minimum distance in px to trigger transition
+
+    // Touch Support
+    el.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      isDragging = true;
+      distX = 0;
+      distY = 0;
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      distX = touch.clientX - startX;
+      distY = touch.clientY - startY;
+      
+      // If horizontal swiping is dominant, prevent default to block vertical page scroll
+      if (Math.abs(distX) > Math.abs(distY) && Math.abs(distX) > 10) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
+
+    el.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      if (Math.abs(distX) > Math.abs(distY) && Math.abs(distX) >= threshold) {
+        if (distX > 0) {
+          onSwipe('right');
+        } else {
+          onSwipe('left');
+        }
+      }
+    });
+
+    // Mouse Drag Support (Premium desktop feel)
+    el.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      startY = e.clientY;
+      isDragging = true;
+      distX = 0;
+      distY = 0;
+      el.style.cursor = 'grabbing';
+      e.preventDefault(); // prevent text selection
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      distX = e.clientX - startX;
+      distY = e.clientY - startY;
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      el.style.cursor = '';
+      if (Math.abs(distX) > Math.abs(distY) && Math.abs(distX) >= threshold) {
+        if (distX > 0) {
+          onSwipe('right');
+        } else {
+          onSwipe('left');
+        }
+      }
+    });
+  }
+
+  // Setup for Categories Carousel
+  setupCarouselDrag('cat-carousel', (direction) => {
+    window.userInteractingWithCarousel = true;
+    if (direction === 'left') {
+      updateCatCarousel(currentCatIndex + 1);
+    } else {
+      updateCatCarousel(currentCatIndex - 1);
+    }
+    // Release interactive lock shortly after transition
+    setTimeout(() => {
+      window.userInteractingWithCarousel = false;
+    }, 1500);
+  });
+
+  // Setup for Features Carousel
+  setupCarouselDrag('feat-carousel', (direction) => {
+    if (direction === 'left') {
+      updateFeatCarousel(currentFeatIndex + 1);
+    } else {
+      updateFeatCarousel(currentFeatIndex - 1);
+    }
+  });
+
+  // Drag-to-scroll for horizontally scrolling layouts on desktop
+  function makeScrollContainerDraggable(className) {
+    const containers = document.querySelectorAll(className);
+    containers.forEach(container => {
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+
+      container.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+        container.style.cursor = 'grabbing';
+        container.style.scrollSnapType = 'none'; // disable snapping temporarily while dragging
+      });
+
+      container.addEventListener('mouseleave', () => {
+        if (!isDown) return;
+        isDown = false;
+        container.style.cursor = '';
+        container.style.scrollSnapType = ''; // restore snapping
+      });
+
+      container.addEventListener('mouseup', () => {
+        if (!isDown) return;
+        isDown = false;
+        container.style.cursor = '';
+        container.style.scrollSnapType = ''; // restore snapping
+      });
+
+      container.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        container.scrollLeft = scrollLeft - walk;
+      });
+    });
+  }
+
+  // Apply to audiences grids (which display as flex sliders on mobile/tablet)
+  makeScrollContainerDraggable('.why-join-cards-grid');
 
 });
 
