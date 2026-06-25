@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.drawImage(img, (cW - nW) / 2, (cH - nH) / 2, nW, nH);
   }
 
-  function preloadFrame(index, callback) {
+  function preloadFrame(index, callback, priority = 'low') {
     if (index < 0 || index >= totalFrames) {
       if (callback) callback();
       return;
@@ -198,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const img = new Image();
+    img.fetchPriority = priority;
     img.src = getFramePath(index);
     imageCache[index] = img;
     img.onload = () => {
@@ -256,21 +257,32 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       const fb = getClosestLoadedFrame(ri);
       if (fb) drawFrame(fb);
-      const ni = new Image();
-      ni.src = getFramePath(ri);
-      ni.onload = () => ni.decode().then(() => {
-        imageCache[ri] = ni;
-        if (Math.round(currentFrameIndex) === ri) drawFrame(ni);
-      }).catch(() => {
-        imageCache[ri] = ni;
-        if (Math.round(currentFrameIndex) === ri) drawFrame(ni);
-      });
+      
+      // Load the current active frame immediately with high priority
+      preloadFrame(ri, () => {
+        if (Math.round(currentFrameIndex) === ri) {
+          const freshImg = imageCache[ri];
+          if (freshImg && freshImg.complete && freshImg.naturalWidth) {
+            drawFrame(freshImg);
+          }
+        }
+      }, 'high');
     }
 
     if (ri !== lastRenderIndex) {
-      for (let i = 1; i <= 15; i++) { preloadFrame(ri + i); preloadFrame(ri - i); }
+      // Preload 12 frames ahead in the direction of scroll with low priority
+      const direction = ri > lastRenderIndex ? 1 : -1;
+      for (let i = 1; i <= 12; i++) {
+        preloadFrame(ri + i * direction, null, 'low');
+      }
+
+      // Garbage collect far-away frames from cache, preserving backbone frames (multiples of 20)
       Object.keys(imageCache).forEach(key => {
-        if (Math.abs(parseInt(key) - ri) > 40) delete imageCache[parseInt(key)];
+        const idx = parseInt(key);
+        if (idx % 20 === 0) return; // Keep backbone frames
+        if (Math.abs(idx - ri) > 40) {
+          delete imageCache[idx];
+        }
       });
       lastRenderIndex = ri;
     }
@@ -861,69 +873,197 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Professionals cards hover/click to change showcase image
+  // Professionals cards hover/click/scroll to change showcase image
   const profCards = document.querySelectorAll('#audience-professionals .wjc-card');
-  const profShowcaseImg = document.getElementById('prof-showcase-img');
-  
-  const activateProfCard = (index, userInitiated = false) => {
+  const profSlider = document.getElementById('prof-images-slider');
+  let currentProfIndex = 0;
+  let isProfSliderScrolling = false;
+
+  const activateProfCard = (index, userInitiated = false, fromSliderScroll = false) => {
     if (index < 0 || index >= profCards.length) return;
-    const card = profCards[index];
-    profCards.forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    
-    if (profShowcaseImg) {
-      profShowcaseImg.style.opacity = '0';
-      setTimeout(() => {
-        profShowcaseImg.src = `Assets/Creative Professional Cards/CP${index + 1}.png?v=3`;
-        profShowcaseImg.style.opacity = '1';
-      }, 150);
+    if (index === currentProfIndex && !userInitiated && !fromSliderScroll) return;
+
+    currentProfIndex = index;
+
+    // Update active class on card list items
+    profCards.forEach((c, idx) => {
+      if (idx === index) c.classList.add('active');
+      else c.classList.remove('active');
+    });
+
+    // Scroll image slider to match active card index
+    if (!fromSliderScroll && profSlider) {
+      isProfSliderScrolling = true;
+      profSlider.scrollTo({
+        left: index * profSlider.clientWidth,
+        behavior: 'smooth'
+      });
+      // Clear flag after transition completes
+      setTimeout(() => { isProfSliderScrolling = false; }, 600);
     }
 
-    if (userInitiated && window.innerWidth <= 992) {
+    // Update strip icon and title dynamically
+    const stripIcon = document.getElementById('prof-strip-icon');
+    const stripTitle = document.getElementById('prof-strip-title');
+    const card = profCards[index];
+    if (card && stripIcon && stripTitle) {
+      const cardTitleEl = card.querySelector('.wjc-title');
+      const cardIconEl = card.querySelector('.wjc-icon-wrap i');
+      if (cardTitleEl) stripTitle.innerText = cardTitleEl.innerText;
+      if (cardIconEl) {
+        stripIcon.className = cardIconEl.className;
+      }
+    }
+
+    // Scroll the active title card into view on mobile
+    if ((userInitiated || fromSliderScroll) && window.innerWidth <= 992 && card) {
       scrollCardIntoView(card);
     }
   };
 
-  if (profCards.length > 0 && profShowcaseImg) {
+  if (profCards.length > 0 && profSlider) {
     profCards.forEach((card, index) => {
       card.addEventListener('mouseenter', () => activateProfCard(index, false));
       card.addEventListener('click', () => activateProfCard(index, true));
     });
+
+    // Handle scroll events directly on the showcase image slider
+    let profScrollTimeout;
+    profSlider.addEventListener('scroll', () => {
+      if (isProfSliderScrolling) return; // Ignore programmatic scrolls
+      clearTimeout(profScrollTimeout);
+      profScrollTimeout = setTimeout(() => {
+        const index = Math.round(profSlider.scrollLeft / profSlider.clientWidth);
+        if (index !== currentProfIndex) {
+          activateProfCard(index, false, true);
+        }
+      }, 80);
+    });
+
+    // Handle vertical mouse wheel scroll to change images page-by-page
+    let lastProfWheelTime = 0;
+    profSlider.addEventListener('wheel', (e) => {
+      const now = Date.now();
+      if (now - lastProfWheelTime < 450) {
+        e.preventDefault();
+        return;
+      }
+      
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        lastProfWheelTime = now;
+        
+        let newIndex = currentProfIndex;
+        if (e.deltaY > 0) {
+          newIndex = Math.min(profCards.length - 1, currentProfIndex + 1);
+        } else {
+          newIndex = Math.max(0, currentProfIndex - 1);
+        }
+        
+        if (newIndex !== currentProfIndex) {
+          activateProfCard(newIndex, true);
+        }
+      }
+    }, { passive: false });
   }
 
-  // Enthusiasts cards hover/click to change showcase image
+  // Enthusiasts cards hover/click/scroll to change showcase image
   const enthCards = document.querySelectorAll('#audience-users .wjc-card');
-  const enthShowcaseImg = document.getElementById('enth-showcase-img');
+  const enthSlider = document.getElementById('enth-images-slider');
+  let currentEnthIndex = 0;
+  let isEnthSliderScrolling = false;
 
-  const activateEnthCard = (index, userInitiated = false) => {
+  const activateEnthCard = (index, userInitiated = false, fromSliderScroll = false) => {
     if (index < 0 || index >= enthCards.length) return;
-    const card = enthCards[index];
-    enthCards.forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    
-    if (enthShowcaseImg) {
-      enthShowcaseImg.style.opacity = '0';
-      setTimeout(() => {
-        enthShowcaseImg.src = `Assets/Creative Enthusiasts Cards/CE${index + 1}.png?v=3`;
-        enthShowcaseImg.style.opacity = '1';
-      }, 150);
+    if (index === currentEnthIndex && !userInitiated && !fromSliderScroll) return;
+
+    currentEnthIndex = index;
+
+    // Update active class on card list items
+    enthCards.forEach((c, idx) => {
+      if (idx === index) c.classList.add('active');
+      else c.classList.remove('active');
+    });
+
+    // Scroll image slider to match active card index
+    if (!fromSliderScroll && enthSlider) {
+      isEnthSliderScrolling = true;
+      enthSlider.scrollTo({
+        left: index * enthSlider.clientWidth,
+        behavior: 'smooth'
+      });
+      // Clear flag after transition completes
+      setTimeout(() => { isEnthSliderScrolling = false; }, 600);
     }
 
-    if (userInitiated && window.innerWidth <= 992) {
+    // Update strip icon and title dynamically
+    const stripIcon = document.getElementById('enth-strip-icon');
+    const stripTitle = document.getElementById('enth-strip-title');
+    const card = enthCards[index];
+    if (card && stripIcon && stripTitle) {
+      const cardTitleEl = card.querySelector('.wjc-title');
+      const cardIconEl = card.querySelector('.wjc-icon-wrap i');
+      if (cardTitleEl) stripTitle.innerText = cardTitleEl.innerText;
+      if (cardIconEl) {
+        stripIcon.className = cardIconEl.className;
+      }
+    }
+
+    // Scroll the active title card into view on mobile
+    if ((userInitiated || fromSliderScroll) && window.innerWidth <= 992 && card) {
       scrollCardIntoView(card);
     }
   };
 
-  if (enthCards.length > 0 && enthShowcaseImg) {
+  if (enthCards.length > 0 && enthSlider) {
     enthCards.forEach((card, index) => {
       card.addEventListener('mouseenter', () => activateEnthCard(index, false));
       card.addEventListener('click', () => activateEnthCard(index, true));
     });
+
+    // Handle scroll events directly on the showcase image slider
+    let enthScrollTimeout;
+    enthSlider.addEventListener('scroll', () => {
+      if (isEnthSliderScrolling) return; // Ignore programmatic scrolls
+      clearTimeout(enthScrollTimeout);
+      enthScrollTimeout = setTimeout(() => {
+        const index = Math.round(enthSlider.scrollLeft / enthSlider.clientWidth);
+        if (index !== currentEnthIndex) {
+          activateEnthCard(index, false, true);
+        }
+      }, 80);
+    });
+
+    // Handle vertical mouse wheel scroll to change images page-by-page
+    let lastEnthWheelTime = 0;
+    enthSlider.addEventListener('wheel', (e) => {
+      const now = Date.now();
+      if (now - lastEnthWheelTime < 450) {
+        e.preventDefault();
+        return;
+      }
+      
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        lastEnthWheelTime = now;
+        
+        let newIndex = currentEnthIndex;
+        if (e.deltaY > 0) {
+          newIndex = Math.min(enthCards.length - 1, currentEnthIndex + 1);
+        } else {
+          newIndex = Math.max(0, currentEnthIndex - 1);
+        }
+        
+        if (newIndex !== currentEnthIndex) {
+          activateEnthCard(newIndex, true);
+        }
+      }
+    }, { passive: false });
   }
 
   // Set first card active on load for both tabs
   if (profCards.length > 0) {
-    profCards[0].classList.add('active');
+    activateProfCard(0, false);
   }
   if (enthCards.length > 0) {
     activateEnthCard(0, false);
@@ -958,9 +1098,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (closestIndex !== -1) {
           const isProfessionals = grid.closest('#audience-professionals') !== null;
           if (isProfessionals) {
-            activateProfCard(closestIndex, false);
+            if (closestIndex !== currentProfIndex) {
+              activateProfCard(closestIndex, false);
+            }
           } else {
-            activateEnthCard(closestIndex, false);
+            if (closestIndex !== currentEnthIndex) {
+              activateEnthCard(closestIndex, false);
+            }
           }
         }
       }, 80);
@@ -1895,8 +2039,8 @@ document.addEventListener('DOMContentLoaded', () => {
   measureHeadlinePositions();
   resizeCanvas();
   requestAnimationFrame(renderLoop);
-  // Preload first 60 frames with progress tracking
-  const framesToLoadFirst = 60;
+  // Preload first 45 frames with progress tracking
+  const framesToLoadFirst = 45;
   let loadedCount = 0;
   const loaderText = document.getElementById('loader-text');
   const loaderEl = document.getElementById('page-loader');
@@ -1942,14 +2086,44 @@ document.addEventListener('DOMContentLoaded', () => {
           loaderEl.style.pointerEvents = 'none';
           setTimeout(() => {
             loaderEl.remove();
+            // Start preloading backbone frames in the background!
+            startBackbonePreload();
           }, 600);
         }
       }, 300);
     }
   }
 
+  // Preload initial frames with high priority to speed up first paint
   for (let i = 0; i < framesToLoadFirst; i++) {
-    preloadFrame(i, checkPreloadProgress);
+    preloadFrame(i, checkPreloadProgress, 'high');
+  }
+
+  // Background backbone frame loader (loads every 20th frame in requestIdleCallback)
+  function startBackbonePreload() {
+    const backboneStep = 20;
+    const backboneFrames = [];
+    for (let i = 0; i < totalFrames; i += backboneStep) {
+      if (i >= framesToLoadFirst) {
+        backboneFrames.push(i);
+      }
+    }
+    
+    let currentIdx = 0;
+    function loadNext() {
+      if (currentIdx >= backboneFrames.length) return;
+      const frameIdx = backboneFrames[currentIdx];
+      preloadFrame(frameIdx, () => {
+        currentIdx++;
+        if (window.requestIdleCallback) {
+          window.requestIdleCallback(() => loadNext());
+        } else {
+          setTimeout(loadNext, 40);
+        }
+      }, 'low');
+    }
+    // Delay slightly to let the page initialize smoothly before background network requests
+    setTimeout(loadNext, 1000);
   }
 
   // Initial calls
@@ -2015,10 +2189,7 @@ document.addEventListener('DOMContentLoaded', () => {
   openModalBtn?.addEventListener('click', openModal);
   modalCloseBtn?.addEventListener('click', closeModal);
 
-  // Close on overlay click (outside panel)
-  modalOverlay?.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) closeModal();
-  });
+
 
   // Close on ESC key
   document.addEventListener('keydown', (e) => {

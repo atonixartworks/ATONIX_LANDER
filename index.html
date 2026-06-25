@@ -494,7 +494,7 @@
 
           <!-- Professionals Tab -->
           <div id="audience-professionals" class="audience-content active">
-            <div class="audience-grid grid grid-cols-1 lg:grid-cols-[1.22fr_0.78fr] gap-8 items-start mb-4">
+            <div class="audience-grid grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start mb-4">
               <!-- Left Column: Info + Cards -->
               <div class="audience-left flex flex-col gap-6">
                 <div class="audience-info">
@@ -603,12 +603,50 @@
               <!-- Right Column: Showcase Card -->
               <div class="audience-right flex justify-center lg:justify-end w-full">
                 <div class="reveal-content w-full max-w-[340px]">
-                  <div class="showcase-card prof-showcase-card overflow-hidden border border-brandPurple/30 bg-black rounded-2xl relative" style="height: 435px; width: 290px; margin: 0 auto;">
+                  <div class="showcase-card prof-showcase-card overflow-hidden border border-brandPurple/30 bg-black rounded-2xl relative" style="height: 400px; width: 320px; margin: 0 auto;">
                     <!-- Gradient Border Mask -->
                     <div class="absolute inset-0 p-[1.5px] pointer-events-none" style="border-radius: 16px; background: linear-gradient(135deg, var(--purple), transparent, var(--cyan)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;"></div>
                     
-                    <div class="w-full h-full flex items-center justify-center overflow-hidden relative">
-                      <img id="prof-showcase-img" src="Assets/Creative Professional Cards/CP1.png?v=3" alt="Creative Portfolio" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                    <!-- Horizontal scrollable slider -->
+                    <div class="showcase-images-slider w-full h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth" id="prof-images-slider" style="scrollbar-width: none; -ms-overflow-style: none;">
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP1.png?v=3" alt="Creative Portfolio" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP2.png?v=3" alt="Workshop Host" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP3.png?v=3" alt="Event Promoter" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP4.png?v=3" alt="Local Discovery" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP5.png?v=3" alt="Creative Projects" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP6.png?v=3" alt="Audience Builder" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP7.png?v=3" alt="Collaborator Finder" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Professional Cards/CP8.png?v=3" alt="Class Advertising" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                    </div>
+
+                    <!-- Dynamic Glassmorphism Strip -->
+                    <div class="showcase-strip absolute bottom-3 left-3 right-3 p-2.5 rounded-xl flex items-center justify-between text-white backdrop-blur-md bg-black/40 border border-white/10 z-10 transition-all duration-300">
+                      <div class="flex items-center gap-2.5">
+                        <div class="strip-icon-wrap w-7 h-7 rounded-lg bg-brandPurple/20 border border-brandPurple/30 flex items-center justify-center text-brandCyan text-xs">
+                          <i class="ph ph-image" id="prof-strip-icon"></i>
+                        </div>
+                        <div class="flex flex-col text-left">
+                          <span class="text-[9px] font-extrabold tracking-[0.15em] text-brandPurple uppercase" id="prof-strip-badge">FEATURE</span>
+                          <span class="text-[11px] font-extrabold text-white" id="prof-strip-title">Creative Portfolio</span>
+                        </div>
+                      </div>
+                      <i class="ph ph-sparkle text-[11px] text-brandCyan animate-pulse"></i>
                     </div>
                   </div>
                 </div>
@@ -618,7 +656,7 @@
 
           <!-- Enthusiasts Tab -->
           <div id="audience-users" class="audience-content">
-            <div class="audience-grid grid grid-cols-1 lg:grid-cols-[1.22fr_0.78fr] gap-8 items-start mb-4">
+            <div class="audience-grid grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start mb-4">
               <!-- Left Column: Info + Cards -->
               <div class="audience-left flex flex-col gap-6">
                 <div class="audience-info">
@@ -727,12 +765,50 @@
               <!-- Right Column: Showcase Card -->
               <div class="audience-right flex justify-center lg:justify-end w-full">
                 <div class="reveal-content w-full max-w-[340px]">
-                  <div class="showcase-card prof-showcase-card overflow-hidden border border-brandPurple/30 bg-black rounded-2xl relative" style="height: 435px; width: 290px; margin: 0 auto;">
+                  <div class="showcase-card enth-showcase-card overflow-hidden border border-brandPurple/30 bg-black rounded-2xl relative" style="height: 400px; width: 300px; margin: 0 auto;">
                     <!-- Gradient Border Mask -->
                     <div class="absolute inset-0 p-[1.5px] pointer-events-none" style="border-radius: 16px; background: linear-gradient(135deg, var(--purple), transparent, var(--cyan)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;"></div>
                     
-                    <div class="w-full h-full flex items-center justify-center overflow-hidden relative">
-                      <img id="enth-showcase-img" src="Assets/Creative Enthusiasts Cards/CE1.png?v=3" alt="Creative Community" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                    <!-- Horizontal scrollable slider -->
+                    <div class="showcase-images-slider w-full h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth" id="enth-images-slider" style="scrollbar-width: none; -ms-overflow-style: none;">
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE1.png?v=3" alt="Join Communities" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE2.png?v=3" alt="Discover Workshops" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE3.png?v=3" alt="Learn From Pros" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE4.png?v=3" alt="Attend Events" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE5.png?v=3" alt="Explore Art Forms" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE6.png?v=3" alt="Meet Creators" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE7.png?v=3" alt="Start Your Journey" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                      <div class="w-full h-full flex-shrink-0 snap-start relative">
+                        <img src="Assets/Creative Enthusiasts Cards/CE8.png?v=3" alt="Share Thoughts" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                      </div>
+                    </div>
+
+                    <!-- Dynamic Glassmorphism Strip -->
+                    <div class="showcase-strip absolute bottom-3 left-3 right-3 p-2.5 rounded-xl flex items-center justify-between text-white backdrop-blur-md bg-black/40 border border-white/10 z-10 transition-all duration-300">
+                      <div class="flex items-center gap-2.5">
+                        <div class="strip-icon-wrap w-7 h-7 rounded-lg bg-brandPurple/20 border border-brandPurple/30 flex items-center justify-center text-brandCyan text-xs">
+                          <i class="ph ph-users" id="enth-strip-icon"></i>
+                        </div>
+                        <div class="flex flex-col text-left">
+                          <span class="text-[9px] font-extrabold tracking-[0.15em] text-brandPurple uppercase" id="enth-strip-badge">FEATURE</span>
+                          <span class="text-[11px] font-extrabold text-white" id="enth-strip-title">Join Communities</span>
+                        </div>
+                      </div>
+                      <i class="ph ph-sparkle text-[11px] text-brandCyan animate-pulse"></i>
                     </div>
                   </div>
                 </div>
