@@ -876,19 +876,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear existing timer
     clearTimeout(scrollInactivityTimer);
 
-    // If modals are open, or if user is interacting with form, do not schedule the hint
+    // If modals are open, user is interacting with form, or footer is visible, do not schedule the hint
     const regModalOpen = document.getElementById('register-modal')?.classList.contains('open');
     const succModalOpen = document.getElementById('success-modal')?.classList.contains('open');
-    if (regModalOpen || succModalOpen || isUserInteractingWithForm || isInteractingWithForm()) {
+    
+    const footer = document.querySelector('.footer-minimal');
+    const isFooterVisible = footer && (footer.getBoundingClientRect().top < window.innerHeight);
+
+    if (regModalOpen || succModalOpen || isUserInteractingWithForm || isInteractingWithForm() || isFooterVisible) {
       return;
     }
 
     // Start a 2-second timer to show the hint
     scrollInactivityTimer = setTimeout(() => {
-      // Re-verify modal/form state before displaying
+      // Re-verify modal/form/footer state before displaying
       const currentRegModalOpen = document.getElementById('register-modal')?.classList.contains('open');
       const currentSuccModalOpen = document.getElementById('success-modal')?.classList.contains('open');
-      if (!currentRegModalOpen && !currentSuccModalOpen && !isUserInteractingWithForm && !isInteractingWithForm()) {
+      
+      const currentFooter = document.querySelector('.footer-minimal');
+      const currentFooterVisible = currentFooter && (currentFooter.getBoundingClientRect().top < window.innerHeight);
+
+      if (!currentRegModalOpen && !currentSuccModalOpen && !isUserInteractingWithForm && !isInteractingWithForm() && !currentFooterVisible) {
         heroScrollHint?.classList.remove('hidden-hint');
       }
     }, 2000);
@@ -1213,6 +1221,45 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 80);
     });
 
+    // Handle vertical mouse wheel scroll to change images page-by-page
+    let lastProfWheelTime = 0;
+    profSlider.addEventListener('wheel', (e) => {
+      // Only intercept wheel scroll if the Audiences section is fully revealed
+      const audTrack = document.getElementById('audiences');
+      if (audTrack) {
+        const audRect = audTrack.getBoundingClientRect();
+        const audTrackTop = audRect.top + window.scrollY;
+        const audScrollRange = audTrack.offsetHeight - window.innerHeight;
+        const audProgress = (window.scrollY - audTrackTop) / audScrollRange;
+        
+        // Skip interception if the section content is not fully active
+        if (audProgress < 0.70 || audProgress >= 0.90) {
+          return;
+        }
+      }
+
+      const now = Date.now();
+      if (now - lastProfWheelTime < 450) {
+        e.preventDefault();
+        return;
+      }
+      
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        lastProfWheelTime = now;
+        
+        let newIndex = currentProfIndex;
+        if (e.deltaY > 0) {
+          newIndex = Math.min(profCards.length - 1, currentProfIndex + 1);
+        } else {
+          newIndex = Math.max(0, currentProfIndex - 1);
+        }
+        
+        if (newIndex !== currentProfIndex) {
+          activateProfCard(newIndex, true);
+        }
+      }
+    }, { passive: false });
   }
 
   // Enthusiasts cards hover/click/scroll to change showcase image
@@ -1282,6 +1329,45 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 80);
     });
 
+    // Handle vertical mouse wheel scroll to change images page-by-page
+    let lastEnthWheelTime = 0;
+    enthSlider.addEventListener('wheel', (e) => {
+      // Only intercept wheel scroll if the Audiences section is fully revealed
+      const audTrack = document.getElementById('audiences');
+      if (audTrack) {
+        const audRect = audTrack.getBoundingClientRect();
+        const audTrackTop = audRect.top + window.scrollY;
+        const audScrollRange = audTrack.offsetHeight - window.innerHeight;
+        const audProgress = (window.scrollY - audTrackTop) / audScrollRange;
+        
+        // Skip interception if the section content is not fully active
+        if (audProgress < 0.70 || audProgress >= 0.90) {
+          return;
+        }
+      }
+
+      const now = Date.now();
+      if (now - lastEnthWheelTime < 450) {
+        e.preventDefault();
+        return;
+      }
+      
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        lastEnthWheelTime = now;
+        
+        let newIndex = currentEnthIndex;
+        if (e.deltaY > 0) {
+          newIndex = Math.min(enthCards.length - 1, currentEnthIndex + 1);
+        } else {
+          newIndex = Math.max(0, currentEnthIndex - 1);
+        }
+        
+        if (newIndex !== currentEnthIndex) {
+          activateEnthCard(newIndex, true);
+        }
+      }
+    }, { passive: false });
   }
 
   // Set first card active on load for both tabs
