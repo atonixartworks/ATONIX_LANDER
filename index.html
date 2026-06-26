@@ -34,14 +34,40 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
   </noscript>
 
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandBg:     '#05020c',
+            brandText:   '#f3f1f6',
+            brandMuted:  '#9d96ae',
+            brandPurple: '#8A2BE2',
+            brandPink:   '#FF1493',
+            brandCyan:   '#00E5FF',
+            brandOrange: '#FF7B00',
+          },
+          fontFamily: {
+            heading: ['Outfit', 'sans-serif'],
+            body:    ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+
+
   <!-- Phosphor Icons (replaces Font Awesome) -->
-  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1" defer></script>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="Logos/atonix logo final i.png">
 
-  <!-- Compiled & Optimized Stylesheet (includes Tailwind CSS + Custom Styles) -->
-  <link rel="stylesheet" href="style.min.css?v=1.1">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css?v=2.5">
 </head>
 <body class="bg-brandBg text-brandText font-body overflow-x-hidden antialiased">
 

@@ -1,20 +1,5 @@
-@import "tailwindcss";
-
-@theme {
-  --color-brandBg: #05020c;
-  --color-brandText: #f3f1f6;
-  --color-brandMuted: #9d96ae;
-  --color-brandPurple: #8A2BE2;
-  --color-brandPink: #FF1493;
-  --color-brandCyan: #00E5FF;
-  --color-brandOrange: #FF7B00;
-  
-  --font-heading: "Outfit", sans-serif;
-  --font-body: "Plus Jakarta Sans", sans-serif;
-}
-
 /* ==========================================================================
-   ATONIX — $20K Premium Redesign
+   ATONIX â€” $20K Premium Redesign
    Design System: Dark Cinematic + Aurora UI + Glassmorphism
    Typography: Outfit (heading) + Plus Jakarta Sans (body)
    Icons: Phosphor Icons (6 weight system)
