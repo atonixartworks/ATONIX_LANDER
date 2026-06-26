@@ -1,0 +1,29 @@
+{
+  "name": "atonix-lander",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "build:css": "tailwindcss -i style.src.css -o style.min.css --minify",
+    "watch:css": "tailwindcss -i style.src.css -o style.min.css --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atonixartworks/ATONIX_LANDER.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/atonixartworks/ATONIX_LANDER/issues"
+  },
+  "homepage": "https://github.com/atonixartworks/ATONIX_LANDER#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "autoprefixer": "^10.5.2",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.1"
+  }
+}
