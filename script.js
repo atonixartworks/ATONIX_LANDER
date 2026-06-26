@@ -1213,31 +1213,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 80);
     });
 
-    // Handle vertical mouse wheel scroll to change images page-by-page
-    let lastProfWheelTime = 0;
-    profSlider.addEventListener('wheel', (e) => {
-      const now = Date.now();
-      if (now - lastProfWheelTime < 450) {
-        e.preventDefault();
-        return;
-      }
-      
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        lastProfWheelTime = now;
-        
-        let newIndex = currentProfIndex;
-        if (e.deltaY > 0) {
-          newIndex = Math.min(profCards.length - 1, currentProfIndex + 1);
-        } else {
-          newIndex = Math.max(0, currentProfIndex - 1);
-        }
-        
-        if (newIndex !== currentProfIndex) {
-          activateProfCard(newIndex, true);
-        }
-      }
-    }, { passive: false });
   }
 
   // Enthusiasts cards hover/click/scroll to change showcase image
@@ -1307,31 +1282,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 80);
     });
 
-    // Handle vertical mouse wheel scroll to change images page-by-page
-    let lastEnthWheelTime = 0;
-    enthSlider.addEventListener('wheel', (e) => {
-      const now = Date.now();
-      if (now - lastEnthWheelTime < 450) {
-        e.preventDefault();
-        return;
-      }
-      
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        lastEnthWheelTime = now;
-        
-        let newIndex = currentEnthIndex;
-        if (e.deltaY > 0) {
-          newIndex = Math.min(enthCards.length - 1, currentEnthIndex + 1);
-        } else {
-          newIndex = Math.max(0, currentEnthIndex - 1);
-        }
-        
-        if (newIndex !== currentEnthIndex) {
-          activateEnthCard(newIndex, true);
-        }
-      }
-    }, { passive: false });
   }
 
   // Set first card active on load for both tabs
