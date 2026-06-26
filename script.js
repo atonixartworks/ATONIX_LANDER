@@ -1953,6 +1953,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Initialize dynamic role pills on page load
+  buildRolePills('Creative Professional');
+
   // Your Creative Role Pills Sync
   function syncRole(value) {
     // Inline Form pills style sync (re-query since pills are dynamic)
