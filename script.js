@@ -3060,15 +3060,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ══════════════════════════════════════════════════════════════════════
   // 12. Custom Progress Bar / Scrollbar on Extreme Right
   // ══════════════════════════════════════════════════════════════════════
-  const sections = [
-    { id: 'hero-section', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'audiences', label: 'Who Can Join' },
-    { id: 'features', label: 'Features' },
-    { id: 'categories', label: 'Categories' },
-    { id: 'register', label: 'Early Access' }
-  ];
-
   // Dynamically create progress bar HTML
   const progressContainer = document.createElement('div');
   progressContainer.id = 'site-progressbar';
@@ -3077,56 +3068,11 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="site-progressbar-track">
       <div id="site-progressbar-fill" class="site-progressbar-fill"></div>
     </div>
-    <div id="site-progressbar-dots" class="site-progressbar-dots"></div>
   `;
   document.body.appendChild(progressContainer);
 
-  const dotsContainer = document.getElementById('site-progressbar-dots');
   const progressBarFill = document.getElementById('site-progressbar-fill');
   const progressBarTrack = progressContainer.querySelector('.site-progressbar-track');
-
-  function getSectionScrollTarget(sectionEl) {
-    const isMobile = window.innerWidth <= 1024 || prefersReducedMotion;
-    const trackTop = sectionEl.offsetTop;
-    let targetScroll = trackTop;
-    if (!isMobile && sectionEl.classList.contains('scroll-track')) {
-      const scrollRange = sectionEl.offsetHeight - window.innerHeight;
-      targetScroll = trackTop + 0.80 * scrollRange; // Center of Stage 4 (0.70 to 0.90)
-    }
-    return targetScroll;
-  }
-
-  function renderProgressbarDots() {
-    if (!dotsContainer) return;
-    dotsContainer.innerHTML = '';
-    const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
-    
-    sections.forEach(sec => {
-      const el = document.getElementById(sec.id);
-      if (!el) return;
-      
-      const targetScroll = getSectionScrollTarget(el);
-      const pct = maxScrollY > 0 ? (targetScroll / maxScrollY) * 100 : 0;
-      
-      const dot = document.createElement('div');
-      dot.className = 'scrollbar-milestone-dot';
-      dot.style.top = `${Math.max(0, Math.min(100, pct))}%`;
-      dot.setAttribute('data-section', sec.id);
-      dot.innerHTML = `<span class="milestone-tooltip">${sec.label}</span>`;
-      
-      // Click to scroll
-      dot.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.scrollTo({
-          top: targetScroll,
-          behavior: 'smooth'
-        });
-      });
-      
-      dotsContainer.appendChild(dot);
-    });
-  }
 
   function updateCustomScrollbarProgress(scrollTop) {
     const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
@@ -3134,35 +3080,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (progressBarFill) {
       progressBarFill.style.height = `${Math.max(0, Math.min(100, pct))}%`;
     }
-
-    // Update active state on dots based on header/navigation state
-    const dots = document.querySelectorAll('.scrollbar-milestone-dot');
-    let activeSection = null;
-    const scrollMid = scrollTop + window.innerHeight * 0.45;
-
-    sections.forEach(sec => {
-      const el = document.getElementById(sec.id);
-      if (el && scrollMid >= el.offsetTop) {
-        activeSection = sec.id;
-      }
-    });
-
-    dots.forEach(dot => {
-      if (dot.getAttribute('data-section') === activeSection) {
-        dot.classList.add('active');
-      } else {
-        dot.classList.remove('active');
-      }
-    });
   }
 
   // Click on the track to scroll
   if (progressBarTrack) {
     progressBarTrack.addEventListener('click', (e) => {
-      // If clicked exactly on a dot, let the dot's listener handle it
-      if (e.target.classList.contains('scrollbar-milestone-dot') || e.target.closest('.scrollbar-milestone-dot')) {
-        return;
-      }
       const rect = progressBarTrack.getBoundingClientRect();
       const clickY = e.clientY - rect.top;
       const pct = clickY / rect.height;
@@ -3188,9 +3110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     progressBarTrack.addEventListener('mousedown', (e) => {
-      if (e.target.classList.contains('scrollbar-milestone-dot') || e.target.closest('.scrollbar-milestone-dot')) {
-        return;
-      }
       isDraggingScrollbar = true;
       handleDrag(e.clientY);
       document.body.classList.add('select-none');
@@ -3211,9 +3130,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Touch support for dragging
     progressBarTrack.addEventListener('touchstart', (e) => {
-      if (e.target.classList.contains('scrollbar-milestone-dot') || e.target.closest('.scrollbar-milestone-dot')) {
-        return;
-      }
       isDraggingScrollbar = true;
       handleDrag(e.touches[0].clientY);
     }, { passive: true });
@@ -3233,13 +3149,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize progress bar
   setTimeout(() => {
-    renderProgressbarDots();
     updateCustomScrollbarProgress(window.scrollY);
   }, 100);
 
   // Re-calculate on window resize
   window.addEventListener('resize', () => {
-    renderProgressbarDots();
     updateCustomScrollbarProgress(window.scrollY);
   });
 
