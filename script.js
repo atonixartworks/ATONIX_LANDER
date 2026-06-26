@@ -146,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Real scroll direction and inactivity variables
   let lastActualScrollY = window.scrollY;
   let scrollInactivityTimer = null;
+  let isUserInteractingWithForm = false;
   const heroScrollHint = document.getElementById('hero-scroll-hint');
 
   // ══════════════════════════════════════════════════════════════════════
@@ -483,11 +484,13 @@ document.addEventListener('DOMContentLoaded', () => {
       updateScrollProgress(smoothScrollTop);
       updateHeaderState(smoothScrollTop);
       updateNavActive(smoothScrollTop);
+      updateCustomScrollbarProgress(smoothScrollTop);
     } else if (Math.round(smoothScrollTop) !== Math.round(targetScrollTop)) {
       smoothScrollTop = targetScrollTop;
       updateScrollProgress(smoothScrollTop);
       updateHeaderState(smoothScrollTop);
       updateNavActive(smoothScrollTop);
+      updateCustomScrollbarProgress(smoothScrollTop);
     }
 
     // On mobile devices, do not load or draw canvas animation frames to optimize network/CPU
@@ -561,19 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
       siteHeader?.classList.remove('scrolled');
     }
 
-    // Scroll Down Hint Visibility
-    // At the top, keep the hint visible and clear the inactivity timer if no modal is open.
-    // Past 50px, the inactivity timer handles the visibility state.
-    const regModalOpen = document.getElementById('register-modal')?.classList.contains('open');
-    const succModalOpen = document.getElementById('success-modal')?.classList.contains('open');
-    const modalIsOpen = regModalOpen || succModalOpen;
-
-    if (currentScrollY <= 50 && !modalIsOpen) {
-      heroScrollHint?.classList.remove('hidden-hint');
-      clearTimeout(scrollInactivityTimer);
-    } else if (modalIsOpen) {
-      heroScrollHint?.classList.add('hidden-hint');
-    }
+    // Scroll Down Hint Visibility is now fully handled by the inactivity timer
 
     // AUTO HIDE / SHOW
     // Use raw window.scrollY to detect direction changes instantly
@@ -870,33 +861,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function isSettledOnSection(scrollTop) {
-    // 1. If modals are open, do not show the hint.
-    const regModalOpen = document.getElementById('register-modal')?.classList.contains('open');
-    const succModalOpen = document.getElementById('success-modal')?.classList.contains('open');
-    if (regModalOpen || succModalOpen) return false;
-
-    // 2. If at the very top, show the hint.
-    if (scrollTop <= 50) return true;
-
-    // 3. Otherwise, never show the hint on content/headline sections.
-    return false;
+  function isInteractingWithForm() {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.closest('#registration-form') || activeEl.closest('#modal-registration-form'))) {
+      return true;
+    }
+    return isUserInteractingWithForm;
   }
 
   function handleScrollActivity() {
-    // Hide hint immediately when scrolling
+    // Hide hint immediately when there is activity
     heroScrollHint?.classList.add('hidden-hint');
 
     // Clear existing timer
     clearTimeout(scrollInactivityTimer);
 
-    // Start a new 3-second timer
+    // If modals are open, or if user is interacting with form, do not schedule the hint
+    const regModalOpen = document.getElementById('register-modal')?.classList.contains('open');
+    const succModalOpen = document.getElementById('success-modal')?.classList.contains('open');
+    if (regModalOpen || succModalOpen || isUserInteractingWithForm || isInteractingWithForm()) {
+      return;
+    }
+
+    // Start a 2-second timer to show the hint
     scrollInactivityTimer = setTimeout(() => {
-      if (isSettledOnSection(window.scrollY)) {
+      // Re-verify modal/form state before displaying
+      const currentRegModalOpen = document.getElementById('register-modal')?.classList.contains('open');
+      const currentSuccModalOpen = document.getElementById('success-modal')?.classList.contains('open');
+      if (!currentRegModalOpen && !currentSuccModalOpen && !isUserInteractingWithForm && !isInteractingWithForm()) {
         heroScrollHint?.classList.remove('hidden-hint');
       }
-    }, 3000);
+    }, 2000);
   }
+
+  // Bind activity listeners for scroll, mouse, and keyboard events
+  ['scroll', 'mousemove', 'keydown', 'touchstart', 'mousedown'].forEach(evt => {
+    window.addEventListener(evt, handleScrollActivity, { passive: true });
+  });
+
+  // Track click state inside forms to keep scroll hint hidden
+  document.addEventListener('click', (e) => {
+    const clickedInsideForm = e.target.closest('#registration-form') || e.target.closest('#modal-registration-form');
+    if (clickedInsideForm) {
+      isUserInteractingWithForm = true;
+      heroScrollHint?.classList.add('hidden-hint');
+      clearTimeout(scrollInactivityTimer);
+    } else {
+      isUserInteractingWithForm = false;
+      handleScrollActivity();
+    }
+  }, { passive: true });
+
+  // Initial trigger
+  handleScrollActivity();
 
   function handleScroll() {
     targetScrollTop = window.scrollY;
@@ -3003,6 +3020,192 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Apply to audiences grids (which display as flex sliders on mobile/tablet)
   makeScrollContainerDraggable('.why-join-cards-grid');
+
+  // ══════════════════════════════════════════════════════════════════════
+  // 12. Custom Progress Bar / Scrollbar on Extreme Right
+  // ══════════════════════════════════════════════════════════════════════
+  const sections = [
+    { id: 'hero-section', label: 'Home' },
+    { id: 'about', label: 'About' },
+    { id: 'audiences', label: 'Who Can Join' },
+    { id: 'features', label: 'Features' },
+    { id: 'categories', label: 'Categories' },
+    { id: 'register', label: 'Early Access' }
+  ];
+
+  // Dynamically create progress bar HTML
+  const progressContainer = document.createElement('div');
+  progressContainer.id = 'site-progressbar';
+  progressContainer.className = 'site-progressbar';
+  progressContainer.innerHTML = `
+    <div class="site-progressbar-track">
+      <div id="site-progressbar-fill" class="site-progressbar-fill"></div>
+    </div>
+    <div id="site-progressbar-dots" class="site-progressbar-dots"></div>
+  `;
+  document.body.appendChild(progressContainer);
+
+  const dotsContainer = document.getElementById('site-progressbar-dots');
+  const progressBarFill = document.getElementById('site-progressbar-fill');
+  const progressBarTrack = progressContainer.querySelector('.site-progressbar-track');
+
+  function getSectionScrollTarget(sectionEl) {
+    const isMobile = window.innerWidth <= 1024 || prefersReducedMotion;
+    const trackTop = sectionEl.offsetTop;
+    let targetScroll = trackTop;
+    if (!isMobile && sectionEl.classList.contains('scroll-track')) {
+      const scrollRange = sectionEl.offsetHeight - window.innerHeight;
+      targetScroll = trackTop + 0.80 * scrollRange; // Center of Stage 4 (0.70 to 0.90)
+    }
+    return targetScroll;
+  }
+
+  function renderProgressbarDots() {
+    if (!dotsContainer) return;
+    dotsContainer.innerHTML = '';
+    const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+    
+    sections.forEach(sec => {
+      const el = document.getElementById(sec.id);
+      if (!el) return;
+      
+      const targetScroll = getSectionScrollTarget(el);
+      const pct = maxScrollY > 0 ? (targetScroll / maxScrollY) * 100 : 0;
+      
+      const dot = document.createElement('div');
+      dot.className = 'scrollbar-milestone-dot';
+      dot.style.top = `${Math.max(0, Math.min(100, pct))}%`;
+      dot.setAttribute('data-section', sec.id);
+      dot.innerHTML = `<span class="milestone-tooltip">${sec.label}</span>`;
+      
+      // Click to scroll
+      dot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.scrollTo({
+          top: targetScroll,
+          behavior: 'smooth'
+        });
+      });
+      
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  function updateCustomScrollbarProgress(scrollTop) {
+    const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = maxScrollY > 0 ? (scrollTop / maxScrollY) * 100 : 0;
+    if (progressBarFill) {
+      progressBarFill.style.height = `${Math.max(0, Math.min(100, pct))}%`;
+    }
+
+    // Update active state on dots based on header/navigation state
+    const dots = document.querySelectorAll('.scrollbar-milestone-dot');
+    let activeSection = null;
+    const scrollMid = scrollTop + window.innerHeight * 0.45;
+
+    sections.forEach(sec => {
+      const el = document.getElementById(sec.id);
+      if (el && scrollMid >= el.offsetTop) {
+        activeSection = sec.id;
+      }
+    });
+
+    dots.forEach(dot => {
+      if (dot.getAttribute('data-section') === activeSection) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
+  }
+
+  // Click on the track to scroll
+  if (progressBarTrack) {
+    progressBarTrack.addEventListener('click', (e) => {
+      // If clicked exactly on a dot, let the dot's listener handle it
+      if (e.target.classList.contains('scrollbar-milestone-dot') || e.target.closest('.scrollbar-milestone-dot')) {
+        return;
+      }
+      const rect = progressBarTrack.getBoundingClientRect();
+      const clickY = e.clientY - rect.top;
+      const pct = clickY / rect.height;
+      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo({
+        top: pct * maxScrollY,
+        behavior: 'smooth'
+      });
+    });
+
+    // Custom scrollbar dragging
+    let isDraggingScrollbar = false;
+    
+    const handleDrag = (clientY) => {
+      const rect = progressBarTrack.getBoundingClientRect();
+      const clickY = clientY - rect.top;
+      const pct = Math.max(0, Math.min(1, clickY / rect.height));
+      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo({
+        top: pct * maxScrollY,
+        behavior: 'auto'
+      });
+    };
+
+    progressBarTrack.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('scrollbar-milestone-dot') || e.target.closest('.scrollbar-milestone-dot')) {
+        return;
+      }
+      isDraggingScrollbar = true;
+      handleDrag(e.clientY);
+      document.body.classList.add('select-none');
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDraggingScrollbar) {
+        handleDrag(e.clientY);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDraggingScrollbar) {
+        isDraggingScrollbar = false;
+        document.body.classList.remove('select-none');
+      }
+    });
+    
+    // Touch support for dragging
+    progressBarTrack.addEventListener('touchstart', (e) => {
+      if (e.target.classList.contains('scrollbar-milestone-dot') || e.target.closest('.scrollbar-milestone-dot')) {
+        return;
+      }
+      isDraggingScrollbar = true;
+      handleDrag(e.touches[0].clientY);
+    }, { passive: true });
+    
+    window.addEventListener('touchmove', (e) => {
+      if (isDraggingScrollbar) {
+        handleDrag(e.touches[0].clientY);
+      }
+    }, { passive: false });
+    
+    window.addEventListener('touchend', () => {
+      if (isDraggingScrollbar) {
+        isDraggingScrollbar = false;
+      }
+    });
+  }
+
+  // Initialize progress bar
+  setTimeout(() => {
+    renderProgressbarDots();
+    updateCustomScrollbarProgress(window.scrollY);
+  }, 100);
+
+  // Re-calculate on window resize
+  window.addEventListener('resize', () => {
+    renderProgressbarDots();
+    updateCustomScrollbarProgress(window.scrollY);
+  });
 
 });
 
