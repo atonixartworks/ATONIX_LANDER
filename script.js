@@ -154,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('animation-canvas');
   const ctx = canvas.getContext('2d');
 
+  // Detect mobile device on startup to disable heavy canvas animations and image downloads
+  const isMobileDevice = window.innerWidth <= 992;
+
   const totalFrames = 1639;
   const imageCache  = {};
   let currentFrameIndex = 0;
@@ -172,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resizeCanvas() {
+    if (isMobileDevice) return;
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
     const ri  = Math.round(currentFrameIndex);
@@ -239,6 +243,12 @@ document.addEventListener('DOMContentLoaded', () => {
       updateScrollProgress(smoothScrollTop);
       updateHeaderState(smoothScrollTop);
       updateNavActive(smoothScrollTop);
+    }
+
+    // On mobile devices, do not load or draw canvas animation frames to optimize network/CPU
+    if (isMobileDevice) {
+      requestAnimationFrame(renderLoop);
+      return;
     }
 
     // Synchronize targetFrameIndex with smoothScrollTop to eliminate canvas animation lag
@@ -2039,8 +2049,8 @@ document.addEventListener('DOMContentLoaded', () => {
   measureHeadlinePositions();
   resizeCanvas();
   requestAnimationFrame(renderLoop);
-  // Preload first 45 frames with progress tracking
-  const framesToLoadFirst = 45;
+  // Preload first 45 frames with progress tracking (load only 1 frame on mobile to save bandwidth)
+  const framesToLoadFirst = isMobileDevice ? 1 : 45;
   let loadedCount = 0;
   const loaderText = document.getElementById('loader-text');
   const loaderEl = document.getElementById('page-loader');
@@ -2101,6 +2111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Background backbone frame loader (loads every 20th frame in requestIdleCallback)
   function startBackbonePreload() {
+    if (isMobileDevice) return;
     const backboneStep = 20;
     const backboneFrames = [];
     for (let i = 0; i < totalFrames; i += backboneStep) {

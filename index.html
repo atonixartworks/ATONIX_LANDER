@@ -28,7 +28,11 @@
   <!-- Fonts: Outfit (heading) + Plus Jakarta Sans (body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+  </noscript>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -143,8 +147,8 @@
     <div class="nav-container">
       <!-- Left side: Logo -->
       <a href="#" class="logo-wrapper" aria-label="ATONIX home">
-        <img src="Logos/atonix logo final i.png" alt="ATONIX Icon" class="h-10 w-auto">
-        <img src="Logos/logo word.png" alt="ATONIX" class="h-6 w-auto logo-wordmark">
+        <img src="Logos/atonix logo final i.png" alt="ATONIX Icon" class="h-10 w-auto" width="40" height="40">
+        <img src="Logos/logo word.png" alt="ATONIX" class="h-6 w-auto logo-wordmark" width="120" height="24">
       </a>
 
       <!-- Center group (Nav Links) -->
@@ -387,7 +391,7 @@
             <div class="badge-pill mb-6 reveal-content"><span>ABOUT ATONIX</span></div>
 
             <h2 class="reveal-headline text-4xl md:text-5xl font-heading font-extrabold tracking-tight flex items-center flex-wrap gap-2">
-              What is <img src="Logos/logo word.png" alt="ATONIX" class="h-6 md:h-8 w-auto inline-block">?
+              What is <img src="Logos/logo word.png" alt="ATONIX" class="h-6 md:h-8 w-auto inline-block" width="120" height="24">?
             </h2>
 
             <hr class="reveal-line border-t border-white/10 my-4">
@@ -610,28 +614,28 @@
                     <!-- Horizontal scrollable slider -->
                     <div class="showcase-images-slider w-full h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth" id="prof-images-slider" style="scrollbar-width: none; -ms-overflow-style: none;">
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP1.png?v=3" alt="Creative Portfolio" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP1.png?v=3" alt="Creative Portfolio" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP2.png?v=3" alt="Workshop Host" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP2.png?v=3" alt="Workshop Host" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP3.png?v=3" alt="Event Promoter" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP3.png?v=3" alt="Event Promoter" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP4.png?v=3" alt="Local Discovery" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP4.png?v=3" alt="Local Discovery" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP5.png?v=3" alt="Creative Projects" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP5.png?v=3" alt="Creative Projects" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP6.png?v=3" alt="Audience Builder" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP6.png?v=3" alt="Audience Builder" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP7.png?v=3" alt="Collaborator Finder" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP7.png?v=3" alt="Collaborator Finder" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Professional Cards/CP8.png?v=3" alt="Class Advertising" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Professional Cards/CP8.png?v=3" alt="Class Advertising" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="320" height="400">
                       </div>
                     </div>
 
@@ -772,28 +776,28 @@
                     <!-- Horizontal scrollable slider -->
                     <div class="showcase-images-slider w-full h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth" id="enth-images-slider" style="scrollbar-width: none; -ms-overflow-style: none;">
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE1.png?v=3" alt="Join Communities" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE1.png?v=3" alt="Join Communities" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE2.png?v=3" alt="Discover Workshops" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE2.png?v=3" alt="Discover Workshops" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE3.png?v=3" alt="Learn From Pros" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE3.png?v=3" alt="Learn From Pros" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE4.png?v=3" alt="Attend Events" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE4.png?v=3" alt="Attend Events" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE5.png?v=3" alt="Explore Art Forms" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE5.png?v=3" alt="Explore Art Forms" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE6.png?v=3" alt="Meet Creators" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE6.png?v=3" alt="Meet Creators" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE7.png?v=3" alt="Start Your Journey" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE7.png?v=3" alt="Start Your Journey" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                       <div class="w-full h-full flex-shrink-0 snap-start relative">
-                        <img src="Assets/Creative Enthusiasts Cards/CE8.png?v=3" alt="Share Thoughts" class="w-full h-full object-cover rounded-2xl" loading="lazy">
+                        <img src="Assets/Creative Enthusiasts Cards/CE8.png?v=3" alt="Share Thoughts" class="w-full h-full object-cover rounded-2xl" loading="lazy" width="300" height="400">
                       </div>
                     </div>
 
@@ -929,7 +933,7 @@
                   <div class="feat-slider-track" id="feat-slider-track">
                     
                     <div class="feat-card active" data-index="0" role="listitem" tabindex="0">
-                      <img src="Assets/Features/Feature 1.png" alt="Creative Portfolio" class="feat-card-img w-full h-full object-cover">
+                      <img src="Assets/Features/Feature 1.png" alt="Creative Portfolio" class="feat-card-img w-full h-full object-cover" width="1672" height="941" loading="lazy">
                       <div class="feat-card-overlay">
                         <div class="feat-card-overlay-content">
                           <span class="feat-overlay-num">01</span>
@@ -940,7 +944,7 @@
                     </div>
 
                     <div class="feat-card" data-index="1" role="listitem" tabindex="0">
-                      <img src="Assets/Features/Feature 2.png" alt="Local Discovery" class="feat-card-img w-full h-full object-cover">
+                      <img src="Assets/Features/Feature 2.png" alt="Local Discovery" class="feat-card-img w-full h-full object-cover" width="1672" height="941" loading="lazy">
                       <div class="feat-card-overlay">
                         <div class="feat-card-overlay-content">
                           <span class="feat-overlay-num">02</span>
@@ -951,7 +955,7 @@
                     </div>
 
                     <div class="feat-card" data-index="2" role="listitem" tabindex="0">
-                      <img src="Assets/Features/Feature 3.png" alt="Workshops & Classes" class="feat-card-img w-full h-full object-cover">
+                      <img src="Assets/Features/Feature 3.png" alt="Workshops & Classes" class="feat-card-img w-full h-full object-cover" width="1672" height="941" loading="lazy">
                       <div class="feat-card-overlay">
                         <div class="feat-card-overlay-content">
                           <span class="feat-overlay-num">03</span>
@@ -962,7 +966,7 @@
                     </div>
 
                     <div class="feat-card" data-index="3" role="listitem" tabindex="0">
-                      <img src="Assets/Features/Feature 4.png" alt="Events & Experiences" class="feat-card-img w-full h-full object-cover">
+                      <img src="Assets/Features/Feature 4.png" alt="Events & Experiences" class="feat-card-img w-full h-full object-cover" width="1672" height="941" loading="lazy">
                       <div class="feat-card-overlay">
                         <div class="feat-card-overlay-content">
                           <span class="feat-overlay-num">04</span>
@@ -973,7 +977,7 @@
                     </div>
 
                     <div class="feat-card" data-index="4" role="listitem" tabindex="0">
-                      <img src="Assets/Features/Feature 5.png" alt="Collaborations" class="feat-card-img w-full h-full object-cover">
+                      <img src="Assets/Features/Feature 5.png" alt="Collaborations" class="feat-card-img w-full h-full object-cover" width="1672" height="941" loading="lazy">
                       <div class="feat-card-overlay">
                         <div class="feat-card-overlay-content">
                           <span class="feat-overlay-num">05</span>
@@ -984,7 +988,7 @@
                     </div>
 
                     <div class="feat-card" data-index="5" role="listitem" tabindex="0">
-                      <img src="Assets/Features/Feature 6.png" alt="Opportunities" class="feat-card-img w-full h-full object-cover">
+                      <img src="Assets/Features/Feature 6.png" alt="Opportunities" class="feat-card-img w-full h-full object-cover" width="1672" height="941" loading="lazy">
                       <div class="feat-card-overlay">
                         <div class="feat-card-overlay-content">
                           <span class="feat-overlay-num">06</span>
@@ -1518,7 +1522,7 @@
       <!-- Header -->
       <div class="text-center mb-6">
         <a href="#" class="logo-wrapper justify-center mb-4 inline-flex">
-          <img src="Logos/logo word.png" alt="ATONIX" class="h-5 w-auto logo-wordmark">
+          <img src="Logos/logo word.png" alt="ATONIX" class="h-5 w-auto logo-wordmark" width="100" height="20">
         </a>
         <h2 id="modal-title" class="text-2xl font-heading font-extrabold text-white mb-1.5">Register Your Interest</h2>
         <p class="text-sm text-brandMuted">Be the first to know when we launch.<br>Join our community of creative minds.</p>
@@ -1642,7 +1646,7 @@
       </div>
 
       <div class="mb-4">
-        <img src="Logos/logo word.png" alt="ATONIX" class="h-5 w-auto mx-auto logo-wordmark">
+        <img src="Logos/logo word.png" alt="ATONIX" class="h-5 w-auto mx-auto logo-wordmark" width="100" height="20">
       </div>
 
       <!-- Success Messages -->
