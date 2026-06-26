@@ -157,6 +157,251 @@ document.addEventListener('DOMContentLoaded', () => {
   // Detect mobile device on startup to disable heavy canvas animations and image downloads
   const isMobileDevice = window.innerWidth <= 992;
 
+  // ══════════════════════════════════════════════════════════════════════
+  // 1b. Galaxy Particle Engine (mobile only)
+  // ══════════════════════════════════════════════════════════════════════
+  let galaxyCtx = null;
+  let galaxyCanvas = null;
+  const galaxyStars = [];
+  const galaxyNebulae = [];
+  const galaxyComets = [];
+  let galaxyScrollVelocity = 0;
+  let galaxyLastScrollY = 0;
+  let galaxyTime = 0;
+
+  if (isMobileDevice) {
+    galaxyCanvas = document.getElementById('galaxy-particles');
+    if (galaxyCanvas) {
+      galaxyCtx = galaxyCanvas.getContext('2d');
+
+      function resizeGalaxy() {
+        galaxyCanvas.width = window.innerWidth;
+        galaxyCanvas.height = window.innerHeight;
+      }
+      resizeGalaxy();
+      window.addEventListener('resize', resizeGalaxy);
+
+      // ── Layer 1: Background stars (small, twinkling, many) ──
+      const starCount = Math.min(250, Math.round(window.innerWidth * 0.35));
+      for (let i = 0; i < starCount; i++) {
+        galaxyStars.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 1.8 + 0.3,
+          baseAlpha: Math.random() * 0.6 + 0.3,
+          twinkleSpeed: Math.random() * 0.02 + 0.006,
+          twinklePhase: Math.random() * Math.PI * 2,
+          driftX: (Math.random() - 0.5) * 0.35,
+          driftY: (Math.random() - 0.5) * 0.2,
+          parallax: Math.random() * 0.35 + 0.05,
+          hue: Math.random() < 0.7 ? 0 : (Math.random() < 0.5 ? 270 : 190), // white, purple, or cyan
+        });
+      }
+
+      // ── Layer 2: Nebula blobs (glowing orbs, slow-moving) ──
+      const nebulaCount = Math.min(30, Math.round(window.innerWidth * 0.04));
+      const nebulaColors = [
+        { h: 275, s: 80, l: 50 }, // purple
+        { h: 330, s: 90, l: 55 }, // pink
+        { h: 190, s: 100, l: 50 }, // cyan
+        { h: 260, s: 70, l: 40 }, // deep violet
+        { h: 300, s: 60, l: 45 }, // magenta
+      ];
+      for (let i = 0; i < nebulaCount; i++) {
+        const c = nebulaColors[i % nebulaColors.length];
+        galaxyNebulae.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 50 + 25,
+          color: c,
+          baseAlpha: Math.random() * 0.06 + 0.02,
+          pulseSpeed: Math.random() * 0.008 + 0.003,
+          pulsePhase: Math.random() * Math.PI * 2,
+          orbitRadius: Math.random() * 20 + 5,
+          orbitSpeed: (Math.random() - 0.5) * 0.003,
+          orbitPhase: Math.random() * Math.PI * 2,
+          parallax: Math.random() * 0.2 + 0.05,
+        });
+      }
+
+      // ── Layer 3: Shooting comets (streak both on scroll and ambient) ──
+      const cometCount = 20;
+      for (let i = 0; i < cometCount; i++) {
+        galaxyComets.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          len: Math.random() * 45 + 18,
+          speed: Math.random() * 1.8 + 0.5,
+          angle: Math.random() * 0.5 + 0.7, // roughly 40-70 degrees
+          alpha: 0,
+          active: false,
+          hue: [270, 190, 330][Math.floor(Math.random() * 3)],
+          life: 0,
+          maxLife: Math.random() * 90 + 60,
+        });
+      }
+    }
+  }
+
+  function renderGalaxyParticles() {
+    if (!galaxyCtx || !galaxyCanvas) return;
+
+    const w = galaxyCanvas.width;
+    const h = galaxyCanvas.height;
+    const gCtx = galaxyCtx;
+
+    // Track scroll velocity for cosmic effects
+    const currentScrollY = window.scrollY || window.pageYOffset || 0;
+    const rawVelocity = currentScrollY - galaxyLastScrollY;
+    galaxyScrollVelocity += (rawVelocity - galaxyScrollVelocity) * 0.08;
+    galaxyLastScrollY = currentScrollY;
+    galaxyTime++;
+
+    const absVel = Math.abs(galaxyScrollVelocity);
+    const scrollFactor = Math.min(absVel / 12, 1); // 0–1 based on scroll speed
+
+    // Clear with slight trail for ghosting effect
+    gCtx.globalCompositeOperation = 'source-over';
+    gCtx.fillStyle = 'rgba(5, 2, 12, 0.25)';
+    gCtx.fillRect(0, 0, w, h);
+
+    // ── Draw nebula blobs (lowest layer) ──
+    gCtx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < galaxyNebulae.length; i++) {
+      const n = galaxyNebulae[i];
+      n.orbitPhase += n.orbitSpeed;
+      const pulse = Math.sin(galaxyTime * n.pulseSpeed + n.pulsePhase) * 0.5 + 0.5;
+      const alpha = n.baseAlpha + pulse * 0.04 + scrollFactor * 0.03;
+      const ox = Math.cos(n.orbitPhase) * n.orbitRadius;
+      const oy = Math.sin(n.orbitPhase) * n.orbitRadius;
+      const scrollOffset = galaxyScrollVelocity * n.parallax;
+
+      const drawX = ((n.x + ox) % w + w) % w;
+      const drawY = ((n.y + oy - scrollOffset * 0.3) % h + h) % h;
+
+      const grad = gCtx.createRadialGradient(drawX, drawY, 0, drawX, drawY, n.r + scrollFactor * 15);
+      grad.addColorStop(0, `hsla(${n.color.h}, ${n.color.s}%, ${n.color.l}%, ${alpha})`);
+      grad.addColorStop(0.5, `hsla(${n.color.h}, ${n.color.s}%, ${n.color.l}%, ${alpha * 0.3})`);
+      grad.addColorStop(1, `hsla(${n.color.h}, ${n.color.s}%, ${n.color.l}%, 0)`);
+
+      gCtx.beginPath();
+      gCtx.arc(drawX, drawY, n.r + scrollFactor * 15, 0, Math.PI * 2);
+      gCtx.fillStyle = grad;
+      gCtx.fill();
+    }
+
+    // ── Draw stars (middle layer) ──
+    gCtx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < galaxyStars.length; i++) {
+      const s = galaxyStars[i];
+
+      // Drift
+      s.x += s.driftX + galaxyScrollVelocity * s.parallax * 0.04;
+      s.y += s.driftY - galaxyScrollVelocity * s.parallax * 0.15;
+
+      // Wrap
+      if (s.x < -5) s.x = w + 5;
+      if (s.x > w + 5) s.x = -5;
+      if (s.y < -5) s.y = h + 5;
+      if (s.y > h + 5) s.y = -5;
+
+      // Twinkle
+      const twinkle = Math.sin(galaxyTime * s.twinkleSpeed + s.twinklePhase) * 0.5 + 0.5;
+      const alpha = s.baseAlpha * (0.5 + twinkle * 0.5) + scrollFactor * 0.2;
+      const radius = s.r + scrollFactor * 0.5;
+
+      if (s.hue === 0) {
+        // White star
+        gCtx.fillStyle = `rgba(255, 255, 255, ${Math.min(alpha, 1)})`;
+      } else {
+        gCtx.fillStyle = `hsla(${s.hue}, 80%, 75%, ${Math.min(alpha, 1)})`;
+      }
+
+      gCtx.beginPath();
+      gCtx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+      gCtx.fill();
+
+      // Glow halo on brighter stars
+      if (s.r > 1.0 && twinkle > 0.7) {
+        const glowAlpha = (twinkle - 0.7) * 0.4 + scrollFactor * 0.15;
+        const glowGrad = gCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius * 4);
+        glowGrad.addColorStop(0, s.hue === 0
+          ? `rgba(220, 220, 255, ${glowAlpha})`
+          : `hsla(${s.hue}, 80%, 70%, ${glowAlpha})`);
+        glowGrad.addColorStop(1, 'transparent');
+        gCtx.fillStyle = glowGrad;
+        gCtx.beginPath();
+        gCtx.arc(s.x, s.y, radius * 4, 0, Math.PI * 2);
+        gCtx.fill();
+      }
+    }
+
+    // ── Draw shooting comets (top layer, triggered by scroll) ──
+    gCtx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < galaxyComets.length; i++) {
+      const c = galaxyComets[i];
+
+      // Spawn comets: ambient (always) + boosted on scroll
+      if (!c.active) {
+        const ambientChance = 0.003; // gentle ambient shooting stars even when idle
+        const scrollChance = scrollFactor > 0.2 ? 0.035 * scrollFactor : 0;
+        if (Math.random() < ambientChance + scrollChance) {
+          c.active = true;
+          c.life = 0;
+          c.x = Math.random() * w;
+          c.y = Math.random() * h * 0.6;
+          c.angle = Math.random() * 0.5 + 0.7;
+          c.alpha = 0;
+        }
+      }
+
+      if (!c.active) continue;
+
+      c.life++;
+      const lifeRatio = c.life / c.maxLife;
+
+      // Fade in and out
+      if (lifeRatio < 0.15) {
+        c.alpha = lifeRatio / 0.15;
+      } else if (lifeRatio > 0.7) {
+        c.alpha = (1 - lifeRatio) / 0.3;
+      } else {
+        c.alpha = 1;
+      }
+
+      // Move
+      c.x += Math.cos(c.angle) * c.speed * (1 + scrollFactor);
+      c.y += Math.sin(c.angle) * c.speed * (1 + scrollFactor);
+
+      // Draw trail
+      const tailX = c.x - Math.cos(c.angle) * c.len;
+      const tailY = c.y - Math.sin(c.angle) * c.len;
+      const trailGrad = gCtx.createLinearGradient(tailX, tailY, c.x, c.y);
+      trailGrad.addColorStop(0, `hsla(${c.hue}, 80%, 70%, 0)`);
+      trailGrad.addColorStop(1, `hsla(${c.hue}, 90%, 80%, ${c.alpha * 0.6})`);
+
+      gCtx.strokeStyle = trailGrad;
+      gCtx.lineWidth = 1.5;
+      gCtx.beginPath();
+      gCtx.moveTo(tailX, tailY);
+      gCtx.lineTo(c.x, c.y);
+      gCtx.stroke();
+
+      // Bright head
+      gCtx.fillStyle = `hsla(${c.hue}, 90%, 90%, ${c.alpha * 0.8})`;
+      gCtx.beginPath();
+      gCtx.arc(c.x, c.y, 1.5, 0, Math.PI * 2);
+      gCtx.fill();
+
+      // Deactivate when done
+      if (c.life >= c.maxLife || c.x > w + 50 || c.y > h + 50 || c.x < -50) {
+        c.active = false;
+      }
+    }
+
+    gCtx.globalCompositeOperation = 'source-over';
+  }
+
   const totalFrames = 1639;
   const imageCache  = {};
   let currentFrameIndex = 0;
@@ -247,6 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // On mobile devices, do not load or draw canvas animation frames to optimize network/CPU
     if (isMobileDevice) {
+      renderGalaxyParticles();
       requestAnimationFrame(renderLoop);
       return;
     }
@@ -1561,7 +1807,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ══════════════════════════════════════════════════════════════════════
   const identityBtns        = document.querySelectorAll('.identity-btn');
   const hiddenIdentityInput = document.getElementById('identity-value');
-  const rolePills           = document.querySelectorAll('.role-pill');
+  let   rolePills           = document.querySelectorAll('.role-pill');
   const hiddenRoleInput     = document.getElementById('role-value');
   const regForm             = document.getElementById('registration-form');
   const submitBtn           = document.getElementById('submit-btn');
@@ -1573,8 +1819,73 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalSubmitBtn    = document.getElementById('modal-submit-btn');
   const modalIdentityBtns = document.querySelectorAll('.modal-identity-btn');
   const modalIdentityVal  = document.getElementById('modal-identity-value');
-  const modalRolePills    = document.querySelectorAll('.modal-role-pill');
+  let   modalRolePills    = document.querySelectorAll('.modal-role-pill');
   const modalRoleVal      = document.getElementById('modal-role-value');
+
+  // Dynamic role pills containers and labels
+  const rolePillsContainer      = document.getElementById('role-pills-container');
+  const roleLabel               = document.getElementById('role-label');
+  const modalRolePillsContainer = document.getElementById('modal-role-pills-container');
+  const modalRoleLabel          = document.getElementById('modal-role-label');
+
+  // Role options per identity type
+  const ROLE_OPTIONS = {
+    'Creative Professional': {
+      label: 'Your Creative Role',
+      roles: ['Artist', 'Performer', 'Creator', 'Workshop Host', 'Event Organizer', 'Creative Business', 'Freelancer', 'Other'],
+      default: 'Creator'
+    },
+    'Creative Enthusiast': {
+      label: 'What brings you here?',
+      roles: ['Learner', 'Hobbyist', 'Explorer', 'Workshop Seeker', 'Event Goer', 'Community Member', 'Creative Supporter', 'Beginner Creator', 'Other'],
+      default: 'Learner'
+    }
+  };
+
+  // Build role pills dynamically based on identity
+  function buildRolePills(identity) {
+    const config = ROLE_OPTIONS[identity] || ROLE_OPTIONS['Creative Professional'];
+
+    // Update labels
+    if (roleLabel) roleLabel.textContent = config.label;
+    if (modalRoleLabel) modalRoleLabel.textContent = config.label;
+
+    // Rebuild inline form pills
+    if (rolePillsContainer) {
+      rolePillsContainer.innerHTML = '';
+      config.roles.forEach(role => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = role === config.default
+          ? 'role-pill py-0.5 px-2 text-[10px] font-medium border border-brandPurple bg-brandPurple/12 text-white active'
+          : 'role-pill py-0.5 px-2 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted';
+        btn.textContent = role;
+        btn.addEventListener('click', () => syncRole(role));
+        rolePillsContainer.appendChild(btn);
+      });
+      rolePills = rolePillsContainer.querySelectorAll('.role-pill');
+    }
+
+    // Rebuild modal form pills
+    if (modalRolePillsContainer) {
+      modalRolePillsContainer.innerHTML = '';
+      config.roles.forEach(role => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = role === config.default
+          ? 'modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-brandPurple bg-brandPurple/12 text-white active'
+          : 'modal-role-pill py-0.5 px-2.5 text-[10px] font-medium border border-white/8 bg-[#110924]/50 text-brandMuted';
+        btn.textContent = role;
+        btn.addEventListener('click', () => syncRole(role));
+        modalRolePillsContainer.appendChild(btn);
+      });
+      modalRolePills = modalRolePillsContainer.querySelectorAll('.modal-role-pill');
+    }
+
+    // Set default role value
+    if (hiddenRoleInput) hiddenRoleInput.value = config.default;
+    if (modalRoleVal) modalRoleVal.value = config.default;
+  }
 
   // Bidirectional Text/Select Field Sync (supports input and change events)
   function setupInputSync(id1, id2) {
@@ -1625,6 +1936,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     if (modalIdentityVal) modalIdentityVal.value = value;
+
+    // Rebuild role pills for the selected identity
+    buildRolePills(value);
   }
 
   identityBtns.forEach(btn => {
@@ -1641,7 +1955,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Your Creative Role Pills Sync
   function syncRole(value) {
-    // Inline Form pills style sync
+    // Inline Form pills style sync (re-query since pills are dynamic)
+    rolePills = document.querySelectorAll('.role-pill');
     rolePills.forEach(p => {
       if (p.innerText.trim() === value) {
         p.classList.add('active');
@@ -1655,7 +1970,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (hiddenRoleInput) hiddenRoleInput.value = value;
 
-    // Modal Form pills style sync
+    // Modal Form pills style sync (re-query since pills are dynamic)
+    modalRolePills = document.querySelectorAll('.modal-role-pill');
     modalRolePills.forEach(p => {
       if (p.innerText.trim() === value) {
         p.classList.add('active');
@@ -1670,17 +1986,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalRoleVal) modalRoleVal.value = value;
   }
 
-  rolePills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      syncRole(pill.innerText.trim());
-    });
-  });
-
-  modalRolePills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      syncRole(pill.innerText.trim());
-    });
-  });
+  // Note: Click listeners for role pills are attached inside buildRolePills()
 
   function showToast(msg) {
     if (!toast || !toastMessage) return;
@@ -1693,7 +1999,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (regForm) regForm.reset();
     if (modalForm) modalForm.reset();
     syncIdentity('Creative Professional');
-    syncRole('Creator');
   }
 
   // Validate Form Data
