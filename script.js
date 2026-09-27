@@ -2411,7 +2411,65 @@ document.addEventListener('DOMContentLoaded', () => {
   resizeCanvas();
   requestAnimationFrame(renderLoop);
 
-  // ── Aggressive Preloader ────────────────────────────────────────────────
+  // ── Custom Bird Cursor ──────────────────────────────────────────────────
+  // Follows mouse with the bird logo; spins clockwise every 3s of inactivity
+  // (or every 3s after last spin).  Disabled on touch-only devices.
+  // -----------------------------------------------------------------------
+  (function initCustomCursor() {
+    // Only run on pointer:fine (mouse) devices
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
+    const cursorEl = document.getElementById('custom-cursor');
+    if (!cursorEl) return;
+
+    let cx = -200, cy = -200;   // off-screen until first move
+    let spinTimer = null;
+
+    function positionCursor() {
+      cursorEl.style.left = cx + 'px';
+      cursorEl.style.top  = cy + 'px';
+    }
+
+    function triggerSpin() {
+      cursorEl.classList.remove('spinning');
+      // Force reflow so animation restarts cleanly
+      void cursorEl.offsetWidth;
+      cursorEl.classList.add('spinning');
+      cursorEl.addEventListener('animationend', () => {
+        cursorEl.classList.remove('spinning');
+      }, { once: true });
+    }
+
+    function scheduleSpin() {
+      clearTimeout(spinTimer);
+      spinTimer = setTimeout(() => {
+        triggerSpin();
+        scheduleSpin(); // reschedule for next 3s
+      }, 3000);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      cx = e.clientX;
+      cy = e.clientY;
+      positionCursor();
+      // Show cursor on first mouse movement
+      if (cursorEl.style.opacity !== '1') cursorEl.style.opacity = '1';
+      // Restart the 3s spin countdown on move
+      scheduleSpin();
+    }, { passive: true });
+
+    // Hide cursor when mouse leaves the window
+    document.addEventListener('mouseleave', () => {
+      cursorEl.style.opacity = '0';
+      clearTimeout(spinTimer);
+    });
+    document.addEventListener('mouseenter', () => {
+      if (cx > 0) cursorEl.style.opacity = '1';
+      scheduleSpin();
+    });
+  })();
+
+
   // On desktop/tablet: preload a dense backbone of canvas frames PLUS all
   // section images before showing the site, so scrolling is smooth from the
   // first interaction.  On mobile: skip canvas frames, just preload section
