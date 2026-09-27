@@ -2410,92 +2410,174 @@ document.addEventListener('DOMContentLoaded', () => {
   measureHeadlinePositions();
   resizeCanvas();
   requestAnimationFrame(renderLoop);
-  // Preload first 45 frames with progress tracking (load only 1 frame on mobile to save bandwidth)
-  const framesToLoadFirst = isMobileDevice ? 1 : 45;
-  let loadedCount = 0;
-  const loaderText = document.getElementById('loader-text');
-  const loaderEl = document.getElementById('page-loader');
-  const loaderRing = document.getElementById('loader-ring-progress');
-  const loaderStatus = document.getElementById('loader-status');
 
-  // HUD Coordinates
+  // ── Aggressive Preloader ────────────────────────────────────────────────
+  // On desktop/tablet: preload a dense backbone of canvas frames PLUS all
+  // section images before showing the site, so scrolling is smooth from the
+  // first interaction.  On mobile: skip canvas frames, just preload section
+  // images quickly.
+  // -----------------------------------------------------------------------
+
+  const loaderText   = document.getElementById('loader-text');
+  const loaderEl     = document.getElementById('page-loader');
+  const loaderRing   = document.getElementById('loader-ring-progress');
+  const loaderStatus = document.getElementById('loader-status');
   const coordX = document.getElementById('loader-coord-x');
   const coordY = document.getElementById('loader-coord-y');
   const coordZ = document.getElementById('loader-coord-z');
   const coordW = document.getElementById('loader-coord-w');
 
-  function checkPreloadProgress() {
+  // Section images to preload on all devices
+  const sectionImages = [
+    'Assets/Creative Professional Cards/CP1.png?v=3',
+    'Assets/Creative Professional Cards/CP2.png?v=3',
+    'Assets/Creative Professional Cards/CP3.png?v=3',
+    'Assets/Creative Professional Cards/CP4.png?v=3',
+    'Assets/Creative Professional Cards/CP5.png?v=3',
+    'Assets/Creative Professional Cards/CP6.png?v=3',
+    'Assets/Creative Professional Cards/CP7.png?v=3',
+    'Assets/Creative Professional Cards/CP8.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE1.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE2.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE3.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE4.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE5.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE6.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE7.png?v=3',
+    'Assets/Creative Enthusiasts Cards/CE8.png?v=3',
+    'Assets/Features/Feature 1.png',
+    'Assets/Features/Feature 2.png',
+    'Assets/Features/Feature 3.png',
+    'Assets/Features/Feature 4.png',
+    'Assets/Features/Feature 5.png',
+    'Assets/Features/Feature 6.png',
+  ];
+
+  // Canvas frame indices to preload (desktop only)
+  // Dense sampling: every 3rd frame 0-599, every 6th 600-1199,
+  // every 10th 1200-1638.  Covers ~80% of scroll journey.
+  function buildDesktopFrameList() {
+    const list = [];
+    for (let i = 0; i < 600; i += 3)  list.push(i);
+    for (let i = 600; i < 1200; i += 6) list.push(i);
+    for (let i = 1200; i < totalFrames; i += 10) list.push(i);
+    return list;
+  }
+
+  const canvasFramesToPreload = isMobileDevice ? [] : buildDesktopFrameList();
+  const totalAssetsToPreload  = canvasFramesToPreload.length + sectionImages.length;
+  // Dismiss loader at 80% of total assets
+  const dismissThreshold      = Math.ceil(totalAssetsToPreload * 0.80);
+
+  let loadedCount     = 0;
+  let loaderDismissed = false;
+
+  function onAssetLoaded() {
     loadedCount++;
-    const pct = Math.min(100, Math.round((loadedCount / framesToLoadFirst) * 100));
-    
-    // Update SVG progress ring (circumference = 283)
+    const pct = Math.min(100, Math.round((loadedCount / totalAssetsToPreload) * 100));
+
+    // SVG ring (circumference ≈ 283)
     if (loaderRing) {
-      const offset = 283 - (pct / 100) * 283;
-      loaderRing.style.strokeDashoffset = offset;
+      loaderRing.style.strokeDashoffset = 283 - (pct / 100) * 283;
     }
-    
     if (loaderText) loaderText.textContent = `${pct}%`;
 
-    // Dynamic, fast coordinates update for futuristic sci-fi effect
+    // Animated HUD coords
     if (coordX) coordX.textContent = `COORD X : ${120 + Math.floor(Math.random() * 10)}`;
     if (coordY) coordY.textContent = `COORD Y : ${840 + Math.floor(Math.random() * 15)}`;
     if (coordZ) coordZ.textContent = `COORD Z : ${(0.001 + Math.random() * 0.004).toFixed(3)}`;
     if (coordW) coordW.textContent = `COORD W : ${(765.0 + Math.random() * 8.0).toFixed(1)}`;
-    
+
     if (loaderStatus) {
-      if (pct < 25)       loaderStatus.textContent = 'INITIALIZING SYNAPSE ENGINE...';
-      else if (pct < 50)  loaderStatus.textContent = 'RESOLVING TERRAIN DYNAMICS...';
-      else if (pct < 75)  loaderStatus.textContent = 'GENERATING TERRAIN...';
-      else if (pct < 95)  loaderStatus.textContent = 'COMPILING CANVAS FRAMES...';
-      else                loaderStatus.textContent = 'TERRAIN GENERATED';
+      if      (pct < 20) loaderStatus.textContent = 'INITIALIZING SYNAPSE ENGINE...';
+      else if (pct < 40) loaderStatus.textContent = 'RESOLVING TERRAIN DYNAMICS...';
+      else if (pct < 60) loaderStatus.textContent = 'GENERATING TERRAIN...';
+      else if (pct < 80) loaderStatus.textContent = 'COMPILING CANVAS FRAMES...';
+      else if (pct < 95) loaderStatus.textContent = 'RENDERING WORLD GEOMETRY...';
+      else               loaderStatus.textContent = 'TERRAIN GENERATED';
     }
-    
-    if (loadedCount >= framesToLoadFirst) {
-      setTimeout(() => {
-        if (loaderEl) {
-          loaderEl.style.opacity = '0';
-          loaderEl.style.pointerEvents = 'none';
-          setTimeout(() => {
-            loaderEl.remove();
-            // Start preloading backbone frames in the background!
-            startBackbonePreload();
-          }, 600);
-        }
-      }, 300);
+
+    if (!loaderDismissed && loadedCount >= dismissThreshold) {
+      loaderDismissed = true;
+      dismissLoader();
     }
   }
 
-  // Preload initial frames with high priority to speed up first paint
-  for (let i = 0; i < framesToLoadFirst; i++) {
-    preloadFrame(i, checkPreloadProgress, 'high');
+  function dismissLoader() {
+    clearTimeout(loaderFallbackTimer);
+    setTimeout(() => {
+      if (loaderEl) {
+        loaderEl.style.transition = 'opacity 0.7s ease';
+        loaderEl.style.opacity    = '0';
+        loaderEl.style.pointerEvents = 'none';
+        setTimeout(() => {
+          loaderEl.remove();
+          startBackbonePreload();
+        }, 700);
+      }
+    }, 400);
   }
 
-  // Background backbone frame loader (loads every 20th frame in requestIdleCallback)
+  // Load canvas frames in parallel batches of 12
+  const PRELOAD_BATCH_SIZE = 12;
+  let   frameQueueIdx = 0;
+
+  function loadNextFrameBatch() {
+    if (frameQueueIdx >= canvasFramesToPreload.length) return;
+    const end = Math.min(frameQueueIdx + PRELOAD_BATCH_SIZE, canvasFramesToPreload.length);
+    let batchRemaining = end - frameQueueIdx;
+    for (let i = frameQueueIdx; i < end; i++) {
+      preloadFrame(canvasFramesToPreload[i], () => {
+        onAssetLoaded();
+        batchRemaining--;
+        if (batchRemaining === 0) loadNextFrameBatch();
+      }, 'high');
+    }
+    frameQueueIdx = end;
+  }
+
+  // Preload section images (all devices)
+  sectionImages.forEach(src => {
+    const img = new Image();
+    img.onload  = onAssetLoaded;
+    img.onerror = onAssetLoaded;
+    img.src = src;
+  });
+
+  // Start canvas frame batches (desktop/tablet only)
+  if (!isMobileDevice) {
+    loadNextFrameBatch();
+  }
+
+  // Safety fallback: force-dismiss after 10s in case of very slow connections
+  const loaderFallbackTimer = setTimeout(() => {
+    if (!loaderDismissed) {
+      loaderDismissed = true;
+      dismissLoader();
+    }
+  }, 10000);
+
+  // Background backbone loader — fills remaining frames after site is shown
   function startBackbonePreload() {
     if (isMobileDevice) return;
-    const backboneStep = 20;
-    const backboneFrames = [];
-    for (let i = 0; i < totalFrames; i += backboneStep) {
-      if (i >= framesToLoadFirst) {
-        backboneFrames.push(i);
-      }
+    // Load every 5th frame not already cached
+    const remaining = [];
+    for (let i = 0; i < totalFrames; i += 5) {
+      if (!imageCache[i]) remaining.push(i);
     }
-    
-    let currentIdx = 0;
+    let idx = 0;
     function loadNext() {
-      if (currentIdx >= backboneFrames.length) return;
-      const frameIdx = backboneFrames[currentIdx];
-      preloadFrame(frameIdx, () => {
-        currentIdx++;
+      if (idx >= remaining.length) return;
+      preloadFrame(remaining[idx], () => {
+        idx++;
         if (window.requestIdleCallback) {
-          window.requestIdleCallback(() => loadNext());
+          window.requestIdleCallback(loadNext);
         } else {
-          setTimeout(loadNext, 40);
+          setTimeout(loadNext, 20);
         }
       }, 'low');
     }
-    // Delay slightly to let the page initialize smoothly before background network requests
-    setTimeout(loadNext, 1000);
+    setTimeout(loadNext, 800);
   }
 
   // Initial calls
